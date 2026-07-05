@@ -194,7 +194,7 @@ package otlib.components
         protected function fistButtonDownHandler(event:FlexEvent):void
         {
             var current:Number = this.value;
-            this.value = minimum;
+            this.value = (_firstDisplayedIdCallback != null) ? _firstDisplayedIdCallback() : minimum;
 
             if (current != this.value)
                 dispatchEvent(new Event(Event.CHANGE));
@@ -255,7 +255,7 @@ package otlib.components
         protected function lastButtonDownHandler(event:FlexEvent):void
         {
             var current:Number = this.value;
-            this.value = maximum;
+            this.value = (_lastDisplayedIdCallback != null) ? _lastDisplayedIdCallback() : maximum;
 
             if (current != this.value)
                 dispatchEvent(new Event(Event.CHANGE));

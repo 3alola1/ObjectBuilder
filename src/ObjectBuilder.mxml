@@ -601,6 +601,7 @@ THE SOFTWARE.
             
                         setSpriteExtend(window.spriteDimension);
                         var features:ClientFeatures = ClientFeatures.fromWindow(window);
+                        clearFoundResults();
                         sendCommand(new CreateNewFilesCommand(window.version.datSignature,
                                     window.version.sprSignature,
                                     features));
@@ -672,7 +673,10 @@ THE SOFTWARE.
             
                         // Close any active object editor
                         editThing(null);
-            
+
+                        // Drop stale search results from the previously loaded client.
+                        clearFoundResults();
+
                         sendCommand(new LoadFilesCommand(window.datFile,
                                     window.sprFile,
                                     window.version,
@@ -796,6 +800,7 @@ THE SOFTWARE.
                         _settings.setLastMergeDirectory(window.datFile);
             
                         var features:ClientFeatures = ClientFeatures.fromWindow(window);
+                        clearFoundResults();
                         sendCommand(new MergeFilesCommand(window.datFile,
                                     window.sprFile,
                                     window.version,
@@ -1287,7 +1292,26 @@ THE SOFTWARE.
                 thingStepper.value = 0;
                 _logs.removeAll();
             }
-            
+
+            private function clearFoundResults():void
+            {
+                if (foundThingsList)
+                    foundThingsList.removeAll();
+
+                // If the user is on the (now empty) Found tab, drop back to the List view.
+                // Switch directly instead of calling setObjectsView(0): that path fires
+                // requestThingWithDebounce() on the OLD list selection, which would arm a
+                // GetThingCommand against the client that is about to be unloaded.
+                if (objectsViewStack && objectsViewStack.selectedIndex == 2)
+                {
+                    objectsViewStack.selectedIndex = 0;
+                    listViewButton.selected = true;
+                    gridViewButton.selected = false;
+                    foundViewButton.selected = false;
+                    _settings.objectsActiveTab = 0;
+                }
+            }
+
             private function restoreFrameGroupSelection(groupType:uint):void
             {
                 if (thingTypeEditor.frameGroupSlider)
@@ -2721,10 +2745,24 @@ THE SOFTWARE.
             
             protected function thingStepperChangeHandler(event:Event):void
             {
-                if (clientLoaded && thingData)
+                if (!clientLoaded)
+                    return;
+
+                // Found tab active: navigate within the found results instead of re-paging
+                // the (hidden) List/Grid views.
+                if (objectsViewStack && objectsViewStack.selectedIndex == 2)
                 {
-                    requestThingWithDebounce(thingStepper.value, currentCategory);
+                    if (foundThingsList && foundThingsList.getIndexById(thingStepper.value) != -1)
+                    {
+                        foundThingsList.ensureIdIsVisible(thingStepper.value);
+                        foundThingsList.selectedId = thingStepper.value;
+                        requestThingWithDebounce(thingStepper.value, currentCategory);
+                    }
+                    return;
                 }
+
+                if (thingData)
+                    requestThingWithDebounce(thingStepper.value, currentCategory);
             }
             
             protected function replaceThingHandler(event:Event):void
@@ -3289,30 +3327,57 @@ THE SOFTWARE.
 
             protected function getLastDisplayedThingId():uint
             {
-                if (thingList && !thingList.isEmpty)
-                {
-                    return thingList.maxId;
-                }
-                return 0;
+                // Found tab active: last result (by list position); otherwise whole-client max.
+                if (objectsViewStack && objectsViewStack.selectedIndex == 2 &&
+                        foundThingsList && !foundThingsList.isEmpty)
+                    return foundThingsList.getObjectAt(foundThingsList.length - 1).id;
+                return getMaxThingId();
             }
-            
+
             protected function getFirstDisplayedThingId():uint
             {
-                if (thingList && !thingList.isEmpty)
-                {
-                    return thingList.minId;
-                }
-                return 0;
+                // Found tab active: first result (by list position); otherwise whole-client min.
+                if (objectsViewStack && objectsViewStack.selectedIndex == 2 &&
+                        foundThingsList && !foundThingsList.isEmpty)
+                    return foundThingsList.getObjectAt(0).id;
+                return getMinThingId();
             }
-            
+
             protected function getPrevDisplayedThingId():int
             {
+                if (objectsViewStack && objectsViewStack.selectedIndex == 2)
+                    return foundNeighborId(-1);
                 return _currentPrevPageId;
             }
-            
+
             protected function getNextDisplayedThingId():int
             {
+                if (objectsViewStack && objectsViewStack.selectedIndex == 2)
+                    return foundNeighborId(1);
                 return _currentNextPageId;
+            }
+
+            // Positional neighbor in the found list. Clamps to the CURRENT selected id at the
+            // ends so the stepper button becomes a no-op (current == value suppresses CHANGE),
+            // never falling through to the stepper's page-math.
+            private function foundNeighborId(delta:int):int
+            {
+                if (!foundThingsList || foundThingsList.isEmpty)
+                    return -1;
+
+                var len:int = foundThingsList.length;
+                var idx:int = foundThingsList.selectedIndex;
+                if (idx < 0)
+                {
+                    idx = (delta > 0) ? 0 : len - 1;
+                }
+                else
+                {
+                    var target:int = idx + delta;
+                    if (target >= 0 && target < len)
+                        idx = target;
+                }
+                return foundThingsList.getObjectAt(idx).id;
             }
             
             protected function thingListDoubleClickHandler(event:MouseEvent):void
