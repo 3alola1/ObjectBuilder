@@ -475,13 +475,12 @@ THE SOFTWARE.
             }
 
             /**
-             * Check if pixel shift would be blocked by boundary for the current frame.
-             * Uses animationSlider.value, _patternX, _patternY (caller sets these).
+             * Composes the current-view sprite tiles into one totalW×totalH bitmap.
+             * Reads the live view state (sliders + pattern); the caller sets those
+             * before calling. The caller OWNS the result and MUST dispose() it.
              */
-            private function isShiftBlocked(dx:int, dy:int):Boolean
+            private function composeCurrentView():BitmapData
             {
-                if (!_thingData || !_frameGroup) return true;
-
                 var groupType:uint = frameGroupSlider.value;
                 var size:uint = SpriteExtent.DEFAULT_SIZE;
                 var f:uint = animationSlider.value;
@@ -491,13 +490,10 @@ THE SOFTWARE.
                 var z:uint = mountSlider.value;
                 var fgWidth:uint = _frameGroup.width;
                 var fgHeight:uint = _frameGroup.height;
-                var totalW:uint = fgWidth * size;
-                var totalH:uint = fgHeight * size;
                 var rect32:Rectangle = new Rectangle(0, 0, size, size);
                 var pt:Point = new Point();
-                var emptyColor:uint = 0x00FF00FF;
 
-                var composite:BitmapData = new BitmapData(totalW, totalH, true, emptyColor);
+                var composite:BitmapData = new BitmapData(fgWidth * size, fgHeight * size, true, 0x00FF00FF);
                 for (var w:uint = 0; w < fgWidth; w++)
                 {
                     for (var h:uint = 0; h < fgHeight; h++)
@@ -511,7 +507,18 @@ THE SOFTWARE.
                         bmp.dispose();
                     }
                 }
+                return composite;
+            }
 
+            /**
+             * True if content touches the canvas edge in the direction of (dx,dy),
+             * i.e. shifting would push content off the boundary. Operates on an
+             * already-composed view bitmap.
+             */
+            private function edgeBlocked(composite:BitmapData, dx:int, dy:int):Boolean
+            {
+                var totalW:int = composite.width;
+                var totalH:int = composite.height;
                 var blocked:Boolean = false;
                 if (dx > 0)
                 { for (var ry:int = 0; ry < totalH; ry++) { if (isContentPixel(composite.getPixel32(totalW - 1, ry))) { blocked = true; break; } } }
@@ -521,7 +528,19 @@ THE SOFTWARE.
                 { for (var bx:int = 0; bx < totalW; bx++) { if (isContentPixel(composite.getPixel32(bx, totalH - 1))) { blocked = true; break; } } }
                 else if (dy < 0)
                 { for (var tx:int = 0; tx < totalW; tx++) { if (isContentPixel(composite.getPixel32(tx, 0))) { blocked = true; break; } } }
+                return blocked;
+            }
 
+            /**
+             * Check if pixel shift would be blocked by boundary for the current frame.
+             * Uses animationSlider.value, _patternX, _patternY (caller sets these).
+             */
+            private function isShiftBlocked(dx:int, dy:int):Boolean
+            {
+                if (!_thingData || !_frameGroup) return true;
+
+                var composite:BitmapData = composeCurrentView();
+                var blocked:Boolean = edgeBlocked(composite, dx, dy);
                 composite.dispose();
                 return blocked;
             }
@@ -551,55 +570,13 @@ THE SOFTWARE.
                 var rect32:Rectangle = new Rectangle(0, 0, size, size);
                 var pt:Point = new Point();
                 var index:int;
-                var bmp:BitmapData;
-
                 var emptyColor:uint = 0x00FF00FF;
 
-                var cropSize:uint = cropSizeNumericStepper.value;
-                var cropW:uint = (cropSize > 0 && cropSize < totalW) ? Math.min(totalW, cropSize) : totalW;
-                var cropH:uint = (cropSize > 0 && cropSize < totalH) ? Math.min(totalH, cropSize) : totalH;
-                var cropX:int = totalW - cropW;
-                var cropY:int = totalH - cropH;
-
                 // 1. Compose all sprites into one large bitmap
-                var composite:BitmapData = new BitmapData(totalW, totalH, true, emptyColor);
-                for (w = 0; w < fgWidth; w++)
-                {
-                    for (h = 0; h < fgHeight; h++)
-                    {
-                        index = _frameGroup.getSpriteIndex(w, h, l, patX, patY, z, f);
-                        bmp = _thingBinding.getSpriteBitmap(groupType, index);
-                        if (!bmp) continue;
-                        pt.x = (fgWidth - w - 1) * size;
-                        pt.y = (fgHeight - h - 1) * size;
-                        composite.copyPixels(bmp, rect32, pt);
-                        bmp.dispose();
-                    }
-                }
+                var composite:BitmapData = composeCurrentView();
 
                 // 2. Boundary check
-                var blocked:Boolean = false;
-                if (dx > 0)
-                {
-                    for (var ery:int = 0; ery < totalH; ery++)
-                    { if (isContentPixel(composite.getPixel32(totalW - 1, ery))) { blocked = true; break; } }
-                }
-                else if (dx < 0)
-                {
-                    for (var ely:int = 0; ely < totalH; ely++)
-                    { if (isContentPixel(composite.getPixel32(0, ely))) { blocked = true; break; } }
-                }
-                if (dy > 0)
-                {
-                    for (var ebx:int = 0; ebx < totalW; ebx++)
-                    { if (isContentPixel(composite.getPixel32(ebx, totalH - 1))) { blocked = true; break; } }
-                }
-                else if (dy < 0)
-                {
-                    for (var etx:int = 0; etx < totalW; etx++)
-                    { if (isContentPixel(composite.getPixel32(etx, 0))) { blocked = true; break; } }
-                }
-
+                var blocked:Boolean = edgeBlocked(composite, dx, dy);
                 if (blocked && !_wrapPixelShift) { composite.dispose(); return false; }
 
                 // 3. Shift the composite (with optional wrap)
@@ -669,20 +646,161 @@ THE SOFTWARE.
                 }
             }
 
-            private function shiftPixels(dx:int, dy:int):void
+            /**
+             * Shared post-edit tail: mark modified, refresh the right view and notify.
+             * multiFrame=true refreshes the whole preview (many frames changed);
+             * false refreshes just the active frame.
+             */
+            private function finalizePixelEdit(multiFrame:Boolean):void
             {
-                if (!shiftPixelsCore(dx, dy)) { flashShiftBlocked(); return; }
-
                 _pixelsModified = true;
                 _changed = true;
 
                 if (_filmRollMode && _frameGroup.frames > 1)
-                    refreshFilmRollFrame();
+                {
+                    if (multiFrame) updatePreview();
+                    else refreshFilmRollFrame();
+                }
                 else
+                {
                     refreshViewBitmap();
+                }
 
                 setFocus();
                 dispatchEvent(new ThingEditorEvent(ThingEditorEvent.THING_PROPERTY_CHANGE, _thingData));
+            }
+
+            private function shiftPixels(dx:int, dy:int):void
+            {
+                if (!shiftPixelsCore(dx, dy)) { flashShiftBlocked(); return; }
+                finalizePixelEdit(false);
+            }
+
+            /**
+             * Composes the current-view tiles, finds the non-transparent content
+             * bounding box and returns the (dx,dy) needed to align it per `align`.
+             * Returns null if the view has no content (nothing to align). Deltas are
+             * clamped to the canvas so content can never be clipped off.
+             * align: "center" | "topLeft" | "topRight" | "bottomRight" | "bottomLeft"
+             */
+            private function computeAlignDelta(align:String):Point
+            {
+                if (!_thingData || !_frameGroup) return null;
+
+                // 1. Compose the current view, then derive its dimensions
+                var composite:BitmapData = composeCurrentView();
+                var totalW:int = composite.width;
+                var totalH:int = composite.height;
+
+                // 2. Find content bounding box
+                var minX:int = int.MAX_VALUE;
+                var minY:int = int.MAX_VALUE;
+                var maxX:int = -1;
+                var maxY:int = -1;
+                for (var cy:int = 0; cy < totalH; cy++)
+                {
+                    for (var cx:int = 0; cx < totalW; cx++)
+                    {
+                        if (isContentPixel(composite.getPixel32(cx, cy)))
+                        {
+                            if (cx < minX) minX = cx;
+                            if (cx > maxX) maxX = cx;
+                            if (cy < minY) minY = cy;
+                            if (cy > maxY) maxY = cy;
+                        }
+                    }
+                }
+                composite.dispose();
+
+                if (maxX < 0) return null; // empty view — nothing to align
+
+                var bw:int = maxX - minX + 1;
+                var bh:int = maxY - minY + 1;
+
+                // 3. Clamped target top-left of the bounding box per anchor
+                var targetX:int;
+                var targetY:int;
+                switch (align)
+                {
+                    case "topLeft":     targetX = 0;           targetY = 0;           break;
+                    case "topRight":    targetX = totalW - bw; targetY = 0;           break;
+                    case "bottomRight": targetX = totalW - bw; targetY = totalH - bh; break;
+                    case "bottomLeft":  targetX = 0;           targetY = totalH - bh; break;
+                    case "center":
+                    default:
+                        targetX = int((totalW - bw) / 2);
+                        targetY = int((totalH - bh) / 2);
+                        break;
+                }
+
+                return new Point(targetX - minX, targetY - minY);
+            }
+
+            private function alignPixels(align:String):void
+            {
+                var d:Point = computeAlignDelta(align);
+                if (!d || (d.x == 0 && d.y == 0)) return; // no content or already aligned
+                shiftPixels(int(d.x), int(d.y));
+            }
+
+            private function alignMultipleFrames(align:String):void
+            {
+                if (!_thingData || !_frameGroup) return;
+
+                var savedF:uint = animationSlider.value;
+                var savedPatX:uint = _patternX;
+                var savedPatY:uint = _patternY;
+                var any:Boolean = false;
+
+                for (var frameName:String in _multiSelectedFrames)
+                {
+                    var info:Object = parseFrameName(frameName);
+                    if (!info) continue;
+
+                    animationSlider.value = info.frameIdx;
+                    if (info.dirPatX >= 0)
+                    {
+                        _patternX = info.dirPatX;
+                        _patternY = info.dirPatY;
+                    }
+
+                    var d:Point = computeAlignDelta(align);
+                    if (d && (d.x != 0 || d.y != 0) && shiftPixelsCore(int(d.x), int(d.y)))
+                        any = true;
+                }
+
+                animationSlider.value = savedF;
+                _patternX = savedPatX;
+                _patternY = savedPatY;
+
+                if (!any) return;
+
+                finalizePixelEdit(true);
+            }
+
+            // Dropdown index → align anchor. Index 0 ("Default") keeps the original position.
+            private static const ALIGN_BY_INDEX:Array =
+                [null, "center", "topLeft", "topRight", "bottomRight", "bottomLeft"];
+
+            protected function alignChangeHandler(event:IndexChangeEvent):void
+            {
+                var idx:int = alignDropDownList.selectedIndex;
+                if (idx <= 0 || idx >= ALIGN_BY_INDEX.length) return; // 0 = Default — keep position
+
+                var align:String = ALIGN_BY_INDEX[idx];
+
+                // Defer the pixel work: it calls setFocus()/refresh synchronously, which
+                // would interrupt the DropDownList closing its popup (the list intermittently
+                // stayed open). Running it next frame lets the dropdown close first.
+                callLater(applyAlignAction, [align]);
+            }
+
+            private function applyAlignAction(align:String):void
+            {
+                if (getMultiSelectedFrameCount() > 0)
+                    alignMultipleFrames(align);
+                else
+                    alignPixels(align);
             }
 
             private function shiftMultipleFrames(dx:int, dy:int):void
@@ -737,16 +855,7 @@ THE SOFTWARE.
                 _patternX = savedPatX;
                 _patternY = savedPatY;
 
-                _pixelsModified = true;
-                _changed = true;
-
-                if (_filmRollMode && _frameGroup.frames > 1)
-                    updatePreview();
-                else
-                    refreshViewBitmap();
-
-                setFocus();
-                dispatchEvent(new ThingEditorEvent(ThingEditorEvent.THING_PROPERTY_CHANGE, _thingData));
+                finalizePixelEdit(true);
             }
 
             private function selectAllFilmRollFrames():void
@@ -1001,6 +1110,9 @@ THE SOFTWARE.
                 _loading = true;
                 _editPixelsMode = false;
                 _pixelsModified = false;
+                _filmRollMode = false;
+                _wrapPixelShift = false;
+                alignDropDownList.selectedIndex = 0;
                 clearMultiSelection();
                 _lastAnimationFrame = 0;
                 _lastPreviewState = null; // Reset cache for updatePreview optimization
@@ -3027,14 +3139,34 @@ THE SOFTWARE.
                                 label="Edit Pixels"
                                 selected="{_editPixelsMode}"
                                 change="{_editPixelsMode = editPixelsCheckBox.selected; clearMultiSelection(); if (_editPixelsMode) setFocus(); if (_filmRollMode) updatePreview();}"/>
+                        </s:HGroup>
 
+                        <s:HGroup width="100%" horizontalAlign="right" verticalAlign="middle">
                             <s:CheckBox id="wrapPixelShiftCheckBox"
                                 label="Wrap"
                                 toolTip="Wrap pixels to opposite edge instead of blocking at boundary"
                                 selected="{_wrapPixelShift}"
-                                visible="{_editPixelsMode}"
-                                includeInLayout="{_editPixelsMode}"
+                                enabled="{_editPixelsMode}"
                                 change="{_wrapPixelShift = wrapPixelShiftCheckBox.selected;}"/>
+
+                            <s:DropDownList id="alignDropDownList"
+                                requireSelection="true"
+                                selectedIndex="0"
+                                width="130"
+                                enabled="{_editPixelsMode}"
+                                toolTip="{resourceManager.getString('strings', 'alignTooltip')}"
+                                change="alignChangeHandler(event)">
+                                <s:dataProvider>
+                                    <s:ArrayList>
+                                        <fx:String>{resourceManager.getString('strings', 'alignDefault')}</fx:String>
+                                        <fx:String>{resourceManager.getString('strings', 'alignCenter')}</fx:String>
+                                        <fx:String>{resourceManager.getString('strings', 'alignTopLeft')}</fx:String>
+                                        <fx:String>{resourceManager.getString('strings', 'alignTopRight')}</fx:String>
+                                        <fx:String>{resourceManager.getString('strings', 'alignBottomRight')}</fx:String>
+                                        <fx:String>{resourceManager.getString('strings', 'alignBottomLeft')}</fx:String>
+                                    </s:ArrayList>
+                                </s:dataProvider>
+                            </s:DropDownList>
 
                             <s:CheckBox id="filmRollCheckBox"
                                 label="Film Roll"

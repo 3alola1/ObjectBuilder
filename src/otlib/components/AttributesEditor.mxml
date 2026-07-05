@@ -132,6 +132,8 @@
             public function set thingData(value:ThingData):void
             {
                 _thingData = value;
+                if (attributeSearchInput)
+                    attributeSearchInput.text = "";
                 if (!bulkMode)
                 {
                     populateCurrentItemAttributes(value);
