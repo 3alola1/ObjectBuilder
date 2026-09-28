@@ -31,25 +31,22 @@ package ob.settings
     import nail.utils.isNullOrEmpty;
 
     import ob.core.IObjectBuilder;
-    import ob.core.ClipboardAction;
 
     import otlib.core.IVersionStorage;
     import otlib.core.Version;
-    import otlib.core.ClientFeatures;
     import otlib.settings.Settings;
     import otlib.utils.OTFormat;
     import otlib.things.ThingCategory;
 
     public class ObjectBuilderSettings extends Settings
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public var lastDirectory:String;
         public var lastMergeDirectory:String;
         public var lastIODirectory:String;
-        public var lastServerItemsDirectory:String;
         public var exportThingFormat:String;
         public var exportSpriteFormat:String;
         public var datSignature:int;
@@ -77,61 +74,35 @@ package ob.settings
         public var spritesListAmount:Number = 100;
         public var exportWithTransparentBackground:Boolean = false;
         public var jpegQuality:Number = 100;
-        public var hideEmptyObjects:Boolean = false;
         public var itemsDuration:Number = 500;
         public var outfitsDuration:Number = 300;
         public var effectsDuration:Number = 100;
-        public var missilesDuration:Number = 75;
-        public var thingListClipboardAction:uint = ClipboardAction.OBJECT;
-        public var deleteAfterPaste:Boolean = false;
-        public var lastAttributeServer:String = "tfs1.4";
-        public var syncOtbOnAdd:Boolean = true;
-        public var duplicateCopiesServerItem:Boolean = true;
-        public var showLogPanel:Boolean = true;
-        public var largerWindowsFor4K:Boolean = false;
-        public var previewZoom:Number = 1.0;
-        public var objectsGridColumns:uint = 4;
-        public var objectsGridIconSize:uint = 54;
-        public var objectsActiveTab:uint = 0;
-        public var spritesGridColumns:uint = 5;
-        public var spritesGridIconSize:uint = 33;
-        public var spritesActiveTab:uint = 0;
-        public var exportBatchSize:uint = 50;
 
-        // Get features as a single object for unified access
-        public function get features():ClientFeatures
-        {
-            return new ClientFeatures(extended, transparency, improvedAnimations, frameGroups);
-        }
-
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function ObjectBuilderSettings()
         {
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function getLastDirectory():File
         {
-            if (isNullOrEmpty(lastDirectory))
-                return null;
+            if (isNullOrEmpty(lastDirectory)) return null;
 
             var directory:File;
             try
             {
                 directory = new File(lastDirectory);
-            }
-            catch (error:Error)
-            {
+            } catch(error:Error) {
                 return null;
             }
             return directory;
@@ -139,24 +110,20 @@ package ob.settings
 
         public function setLastDirectory(file:File):void
         {
-            if (file)
-            {
+            if (file) {
                 this.lastDirectory = FileUtil.getDirectory(file).nativePath;
             }
         }
 
         public function getLastMergeDirectory():File
         {
-            if (isNullOrEmpty(lastMergeDirectory))
-                return null;
+            if (isNullOrEmpty(lastMergeDirectory)) return null;
 
             var directory:File;
             try
             {
                 directory = new File(lastMergeDirectory);
-            }
-            catch (error:Error)
-            {
+            } catch(error:Error) {
                 return null;
             }
             return directory;
@@ -164,24 +131,20 @@ package ob.settings
 
         public function setLastMergeDirectory(file:File):void
         {
-            if (file)
-            {
+            if (file) {
                 this.lastMergeDirectory = FileUtil.getDirectory(file).nativePath;
             }
         }
 
         public function getIODirectory():File
         {
-            if (isNullOrEmpty(lastIODirectory))
-                return null;
+            if (isNullOrEmpty(lastIODirectory)) return null;
 
             var directory:File;
             try
             {
                 directory = new File(lastIODirectory);
-            }
-            catch (error:Error)
-            {
+            } catch(error:Error) {
                 return null;
             }
             return directory;
@@ -189,43 +152,15 @@ package ob.settings
 
         public function setIODirectory(file:File):void
         {
-            if (file)
-            {
+            if (file) {
                 this.lastIODirectory = FileUtil.getDirectory(file).nativePath;
-            }
-        }
-
-        public function getServerItemsDirectory():File
-        {
-            if (isNullOrEmpty(lastServerItemsDirectory))
-                return null;
-
-            var directory:File;
-            try
-            {
-                directory = new File(lastServerItemsDirectory);
-            }
-            catch (error:Error)
-            {
-                return null;
-            }
-            return directory;
-        }
-
-        public function setServerItemsDirectory(file:File):void
-        {
-            if (file)
-            {
-                this.lastServerItemsDirectory = FileUtil.getDirectory(file).nativePath;
             }
         }
 
         public function getLastExportThingFormat():String
         {
-            if (!isNullOrEmpty(exportThingFormat))
-            {
-                if (ImageFormat.hasImageFormat(exportThingFormat) || exportThingFormat == OTFormat.OBD)
-                {
+            if (!isNullOrEmpty(exportThingFormat)) {
+                if (ImageFormat.hasImageFormat(exportThingFormat) || exportThingFormat == OTFormat.OBD) {
                     return exportThingFormat;
                 }
             }
@@ -252,8 +187,7 @@ package ob.settings
 
         public function getLastExportSpriteFormat():String
         {
-            if (ImageFormat.hasImageFormat(exportSpriteFormat))
-            {
+            if (ImageFormat.hasImageFormat(exportSpriteFormat)) {
                 return exportSpriteFormat;
             }
             return null;
@@ -275,7 +209,7 @@ package ob.settings
 
         public function getDefaultDuration(category:String):uint
         {
-            switch (category)
+            switch(category)
             {
                 case ThingCategory.ITEM:
                     return itemsDuration;
@@ -285,9 +219,6 @@ package ob.settings
 
                 case ThingCategory.EFFECT:
                     return effectsDuration;
-
-                case ThingCategory.MISSILE:
-                    return missilesDuration;
             }
 
             return 0;

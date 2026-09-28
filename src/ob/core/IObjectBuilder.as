@@ -23,7 +23,6 @@
 package ob.core
 {
     import flash.filesystem.File;
-    import com.mignari.workers.WorkerCommand;
 
     import mx.core.IUIComponent;
     import mx.core.IWindow;
@@ -33,10 +32,6 @@ package ob.core
     import otlib.core.IVersionStorage;
     import otlib.core.Version;
     import otlib.utils.ClientInfo;
-    import otlib.things.ThingType;
-    import otlib.sprites.SpriteData;
-    import otlib.loaders.PathHelper;
-    import otlib.utils.ThingListItem;
 
     public interface IObjectBuilder extends IUIComponent, IWindow
     {
@@ -59,7 +54,6 @@ package ob.core
         function get clientChanged():Boolean;
         function get clientIsTemporary():Boolean;
         function get clientLoaded():Boolean;
-        function get otbLoaded():Boolean;
 
         function createNewProject():void;
         function openProject(directory:File = null):void;
@@ -88,25 +82,5 @@ package ob.core
 
         function openLogWindow():void;
         function closeLogWindow():void;
-
-        function get hasClipboardObject():Boolean;
-        function get hasClipboardProperties():Boolean;
-        function get hasClipboardPatterns():Boolean;
-        function get clipboardAction():uint;
-
-        function copyThingToClipboard(thing:ThingType):void;
-        function requestEditThing(id:uint, category:String):void;
-        function selectThing(id:uint, category:String, requestList:Boolean = true):void;
-        function replaceThingsFromFiles(list:Vector.<PathHelper>):void;
-        function pasteThingFromClipboard(targets:Vector.<ThingType>):void;
-        function copyPropertiesToClipboard(thing:ThingType):void;
-        function pastePropertiesFromClipboard(targets:Vector.<ThingType>):void;
-        function copyPatternsToClipboard(thing:ThingType):void;
-        function pastePatternsFromClipboard(targets:Vector.<ThingType>):void;
-        function exportSpriteList(sprites:Vector.<SpriteData>):void;
-        function sendCommand(command:WorkerCommand):void;
-
-        function populateFoundTab(items:Vector.<ThingListItem>):void;
-        function openBulkReplace():void;
     }
 }

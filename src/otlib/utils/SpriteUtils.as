@@ -33,39 +33,31 @@ package otlib.utils
 
     public final class SpriteUtils
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function SpriteUtils()
         {
             throw new AbstractClassError(SpriteUtils);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         private static const POINT:Point = new Point();
-        private static const DEFAULT_RECT:Rectangle = new Rectangle(0, 0, SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE);
-
-        // Cached alert bitmaps (lazy initialized)
-        private static var _alert32:BitmapData;
-        private static var _alert64:BitmapData;
-        private static var _alert128:BitmapData;
-        private static var _alert256:BitmapData;
 
         public static function fillBackground(sprite:BitmapData):BitmapData
         {
             var bitmap:BitmapData = new BitmapData(SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE, false, 0xFF00FF);
-            bitmap.copyPixels(sprite, DEFAULT_RECT, POINT, null, null, true);
+            bitmap.copyPixels(sprite, new Rectangle(0, 0, SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE), POINT, null, null, true);
             return bitmap;
         }
 
         public static function removeMagenta(sprite:BitmapData):BitmapData
         {
             // Transform bitmap 24 to 32 bits
-            if (!sprite.transparent)
-            {
+            if (!sprite.transparent) {
                 sprite = BitmapUtil.to32bits(sprite);
             }
 
@@ -77,48 +69,36 @@ package otlib.utils
         public static function isEmpty(sprite:BitmapData):Boolean
         {
             var bounds:Rectangle = sprite.getColorBoundsRect(0xFF000000, 0x00000000, false);
-            if (bounds.width == 0 && bounds.height == 0)
-                return true;
+            if (bounds.width == 0 && bounds.height == 0) return true;
             return false;
         }
 
         public static function createAlertBitmap():BitmapData
         {
             var data:BitmapData;
-            switch (SpriteExtent.DEFAULT_SIZE)
-            {
+            switch (SpriteExtent.DEFAULT_SIZE) {
                 case 32:
-                    if (!_alert32)
-                        _alert32 = (new Assets.ALERT_IMAGE32).bitmapData;
-                    data = _alert32;
+                    data = (new Assets.ALERT_IMAGE32).bitmapData;
                     break;
 
                 case 64:
-                    if (!_alert64)
-                        _alert64 = (new Assets.ALERT_IMAGE64).bitmapData;
-                    data = _alert64;
+                    data = (new Assets.ALERT_IMAGE64).bitmapData;
                     break;
 
                 case 128:
-                    if (!_alert128)
-                        _alert128 = (new Assets.ALERT_IMAGE128).bitmapData;
-                    data = _alert128;
+                    data = (new Assets.ALERT_IMAGE128).bitmapData;
                     break;
 
                 case 256:
-                    if (!_alert256)
-                        _alert256 = (new Assets.ALERT_IMAGE256).bitmapData;
-                    data = _alert256;
+                    data = (new Assets.ALERT_IMAGE256).bitmapData;
                     break;
 
                 default:
-                    if (!_alert32)
-                        _alert32 = (new Assets.ALERT_IMAGE32).bitmapData;
-                    data = _alert32;
+                    data = (new Assets.ALERT_IMAGE32).bitmapData;
                     break;
             }
 
-            return data;
+            return data
         }
     }
 }

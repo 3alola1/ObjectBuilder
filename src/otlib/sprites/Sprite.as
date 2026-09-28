@@ -37,9 +37,9 @@ package otlib.sprites
      */
     public class Sprite
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var _id:uint;
         private var _transparent:Boolean;
@@ -48,57 +48,34 @@ package otlib.sprites
         private var _hash:String;
         private var _rect:Rectangle;
 
-        private static const TRANSPARENT_COLOR:uint = 0x11;
-        private static const RGB_SIZE:uint = 3072; // 32 * 32 * 3
-
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
         /** The id of the sprite. This value specifies the index in the spr file. **/
-        public function get id():uint
-        {
-            return _id;
-        }
-        public function set id(value:uint):void
-        {
-            _id = value;
-        }
+        public function get id():uint { return _id; }
+        public function set id(value:uint):void { _id = value; }
 
         /** Specifies whether the sprite supports per-pixel transparency. **/
-        public function get transparent():Boolean
-        {
-            return _transparent;
-        }
-        public function set transparent(value:Boolean):void
-        {
-            if (_transparent != value)
-            {
+        public function get transparent():Boolean { return _transparent; }
+        public function set transparent(value:Boolean):void {
+            if (_transparent != value) {
 
                 var pixels:ByteArray = getPixels();
                 _transparent = value;
-                setPixels(pixels);
+                setPixels( pixels );
             }
         }
 
         /** Indicates if the sprite does not have colored pixels. **/
-        public function get isEmpty():Boolean
-        {
-            return (_compressedPixels.length == 0);
-        }
+        public function get isEmpty():Boolean { return (_compressedPixels.length == 0); }
 
-        internal function get length():uint
-        {
-            return _compressedPixels.length;
-        }
-        internal function get compressedPixels():ByteArray
-        {
-            return _compressedPixels;
-        }
+        internal function get length():uint { return _compressedPixels.length;}
+        internal function get compressedPixels():ByteArray { return _compressedPixels; }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function Sprite(id:uint, transparent:Boolean)
         {
@@ -110,13 +87,13 @@ package otlib.sprites
             _rect = new Rectangle(0, 0, SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         /**
          * Returns the <code>id</code> string representation of the <code>Sprite</code>.
@@ -126,88 +103,9 @@ package otlib.sprites
             return _id.toString();
         }
 
-        public function getPixels(target:ByteArray = null):ByteArray
+        public function getPixels():ByteArray
         {
-            return uncompressPixels(target);
-        }
-
-        /**
-         * Gets RGB data like ItemEditor's GetRGBData().
-         * Returns 3072 bytes (32*32*3), with 0x11 for transparent pixels.
-         * @param target Optional reusable ByteArray buffer
-         */
-        public function getRGBData(target:ByteArray = null):ByteArray
-        {
-            var rgb:ByteArray = target ? target : new ByteArray();
-            rgb.length = RGB_SIZE;
-            rgb.position = 0;
-
-            if (isEmpty)
-            {
-                for (var k:uint = 0; k < RGB_SIZE; k++)
-                {
-                    rgb[k] = TRANSPARENT_COLOR;
-                }
-                return rgb;
-            }
-
-            _compressedPixels.position = 0;
-            var write:uint = 0;
-            var length:uint = _compressedPixels.length;
-            var bitPerPixel:uint = _transparent ? 4 : 3;
-            var transparentPixels:uint;
-            var coloredPixels:uint;
-            var read:uint = 0;
-
-            while (read < length)
-            {
-                // Read chunks (2 bytes transparent count, 2 bytes colored count)
-                // Note: compressedPixels contains: [transparent_count (2)] [colored_count (2)] [colored_data...]
-                // We need to read carefully from _compressedPixels.
-
-                // _compressedPixels is Little Endian.
-                transparentPixels = _compressedPixels.readUnsignedShort();
-                coloredPixels = _compressedPixels.readUnsignedShort();
-
-                // Advance read counter (headers + data)
-                read += 4 + (coloredPixels * bitPerPixel);
-
-                // Write transparent pixels (filled with 0x11)
-                for (var i:int = 0; i < transparentPixels; i++)
-                {
-                    rgb[write++] = TRANSPARENT_COLOR;
-                    rgb[write++] = TRANSPARENT_COLOR;
-                    rgb[write++] = TRANSPARENT_COLOR;
-                }
-
-                // Write colored pixels
-                for (var j:int = 0; j < coloredPixels; j++)
-                {
-                    var r:uint = _compressedPixels.readUnsignedByte();
-                    var g:uint = _compressedPixels.readUnsignedByte();
-                    var b:uint = _compressedPixels.readUnsignedByte();
-
-                    if (_transparent)
-                    {
-                        // Skip Alpha byte, do NOT use it to override color with 0x11
-                        _compressedPixels.readUnsignedByte();
-                    }
-
-                    rgb[write++] = r;
-                    rgb[write++] = g;
-                    rgb[write++] = b;
-                }
-            }
-
-            // Fill remaining pixels with transparent color
-            while (write < RGB_SIZE)
-            {
-                rgb[write++] = TRANSPARENT_COLOR;
-                rgb[write++] = TRANSPARENT_COLOR;
-                rgb[write++] = TRANSPARENT_COLOR;
-            }
-
-            return rgb;
+            return uncompressPixels();
         }
 
         public function setPixels(pixels:ByteArray):Boolean
@@ -245,7 +143,7 @@ package otlib.sprites
             if (bitmap.width != SpriteExtent.DEFAULT_SIZE || bitmap.height != SpriteExtent.DEFAULT_SIZE)
                 throw new Error("Invalid sprite bitmap size");
 
-            if (!compressPixels(bitmap.getPixels(_rect)))
+            if (!compressPixels( bitmap.getPixels(_rect) ))
                 return false;
 
             _hash = null;
@@ -289,8 +187,7 @@ package otlib.sprites
             if (_compressedPixels)
                 _compressedPixels.clear();
 
-            if (_bitmap)
-            {
+            if (_bitmap) {
                 _bitmap.dispose();
                 _bitmap = null;
             }
@@ -298,9 +195,9 @@ package otlib.sprites
             _id = 0;
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Private
-        // --------------------------------------
+        //--------------------------------------
 
         private function compressPixels(pixels:ByteArray):Boolean
         {
@@ -316,46 +213,38 @@ package otlib.sprites
             var finishOffset:uint;
             var length:uint = pixels.length / 4;
 
-            while (index < length)
-            {
+            while (index < length) {
 
                 chunkSize = 0;
-                while (index < length)
-                {
+                while (index < length) {
                     pixels.position = index * 4;
                     color = pixels.readUnsignedInt();
                     transparentPixel = (color == 0);
-                    if (!transparentPixel)
-                        break;
+                    if (!transparentPixel) break;
                     alphaCount++;
                     chunkSize++;
                     index++;
                 }
 
                 // Entire image is transparent
-                if (alphaCount < length)
-                {
+                if (alphaCount < length) {
                     // Already at the end
-                    if (index < length)
-                    {
+                    if(index < length) {
                         _compressedPixels.writeShort(chunkSize); // Write transparent pixels
                         coloredPos = _compressedPixels.position; // Save colored position
                         _compressedPixels.position += 2; // Skip colored short
                         chunkSize = 0;
 
-                        while (index < length)
-                        {
+                        while(index < length) {
                             pixels.position = index * 4;
                             color = pixels.readUnsignedInt();
                             transparentPixel = (color == 0);
-                            if (transparentPixel)
-                                break;
+                            if (transparentPixel) break;
 
                             _compressedPixels.writeByte(color >> 16 & 0xFF); // Write red
                             _compressedPixels.writeByte(color >> 8 & 0xFF); // Write green
                             _compressedPixels.writeByte(color & 0xFF); // Write blue
-                            if (_transparent)
-                                _compressedPixels.writeByte(color >> 24 & 0xFF); // Write Alpha
+                            if (_transparent) _compressedPixels.writeByte(color >> 24 & 0xFF); // Write Alpha
 
                             chunkSize++;
                             index++;
@@ -372,7 +261,7 @@ package otlib.sprites
             return true;
         }
 
-        private function uncompressPixels(target:ByteArray = null):ByteArray
+        private function uncompressPixels():ByteArray
         {
             var read:uint;
             var write:uint;
@@ -387,27 +276,21 @@ package otlib.sprites
             var i:int;
 
             _compressedPixels.position = 0;
-            var pixels:ByteArray = target ? target : new ByteArray();
-            pixels.length = SpriteExtent.DEFAULT_DATA_SIZE;
-            pixels.position = 0;
-            write = 0;
+            var pixels:ByteArray = new ByteArray();
 
-            for (read = 0; read < length; read += 4 + (channels * coloredPixels))
-            {
+            for (read = 0; read < length; read += 4 + (channels * coloredPixels)) {
 
                 transparentPixels = _compressedPixels.readUnsignedShort();
                 coloredPixels = _compressedPixels.readUnsignedShort();
 
-                for (i = 0; i < transparentPixels; i++)
-                {
+                for (i = 0; i < transparentPixels; i++) {
                     pixels[write++] = 0x00; // Alpha
                     pixels[write++] = 0x00; // Red
                     pixels[write++] = 0x00; // Green
                     pixels[write++] = 0x00; // Blue
                 }
 
-                for (i = 0; i < coloredPixels; i++)
-                {
+                for (i = 0; i < coloredPixels; i++) {
                     red = _compressedPixels.readUnsignedByte(); // Red
                     green = _compressedPixels.readUnsignedByte(); // Green
                     blue = _compressedPixels.readUnsignedByte(); // Blue
@@ -420,8 +303,7 @@ package otlib.sprites
                 }
             }
 
-            while (write < SpriteExtent.DEFAULT_DATA_SIZE)
-            {
+            while(write < SpriteExtent.DEFAULT_DATA_SIZE) {
                 pixels[write++] = 0x00; // Alpha
                 pixels[write++] = 0x00; // Red
                 pixels[write++] = 0x00; // Green

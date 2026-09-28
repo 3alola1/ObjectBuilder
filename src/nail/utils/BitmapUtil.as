@@ -31,21 +31,18 @@ package nail.utils
 
     public final class BitmapUtil
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function BitmapUtil()
         {
             throw new AbstractClassError(BitmapUtil);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
-
-        private static const POINT:Point = new Point();
-        private static var _matrix:Matrix;
+        //--------------------------------------------------------------------------
 
         public static function to32bits(bitmap:BitmapData):BitmapData
         {
@@ -56,7 +53,7 @@ package nail.utils
                 return bitmap;
 
             var bmp:BitmapData = new BitmapData(bitmap.width, bitmap.height, true, 0);
-            bmp.copyPixels(bitmap, bitmap.rect, POINT);
+            bmp.copyPixels(bitmap, bitmap.rect, new Point());
             return bmp;
         }
 
@@ -69,7 +66,7 @@ package nail.utils
                 return bitmap;
 
             var bmp:BitmapData = new BitmapData(bitmap.width, bitmap.height, false, backgroundColor);
-            bmp.copyPixels(bitmap, bitmap.rect, POINT);
+            bmp.copyPixels(bitmap, bitmap.rect, new Point());
             return bmp;
         }
 
@@ -85,7 +82,7 @@ package nail.utils
         public static function replaceColor(bitmap:BitmapData, oldColor:uint, newColor:uint):void
         {
             if (hasColor(bitmap, oldColor))
-                bitmap.threshold(bitmap, bitmap.rect, POINT, "==", oldColor, newColor, 0xFFFFFFFF, true);
+                bitmap.threshold(bitmap, bitmap.rect, new Point(), "==", oldColor, newColor, 0xFFFFFFFF, true);
         }
 
         public static function rotate(bitmap:BitmapData, degree:int = 0):BitmapData
@@ -93,29 +90,27 @@ package nail.utils
             if (!bitmap)
                 return null;
 
-            if (!_matrix)
-                _matrix = new Matrix();
-            _matrix.identity();
-            _matrix.rotate(deg2rad(degree));
-
             var newBitmap:BitmapData;
+            var matrix:Matrix = new Matrix();
+            matrix.rotate(deg2rad( degree ));
+
             if (degree == 90)
             {
                 newBitmap = new BitmapData(bitmap.height, bitmap.width, bitmap.transparent, 0);
-                _matrix.translate(bitmap.height, 0);
+                matrix.translate(bitmap.height, 0);
             }
             else if (degree == -90 || degree == 270)
             {
                 newBitmap = new BitmapData(bitmap.height, bitmap.width, bitmap.transparent, 0);
-                _matrix.translate(0, bitmap.width);
+                matrix.translate(0, bitmap.width);
             }
             else if (degree == 180)
             {
                 newBitmap = new BitmapData(bitmap.width, bitmap.height, bitmap.transparent, 0);
-                _matrix.translate(bitmap.width, bitmap.height);
+                matrix.translate(bitmap.width, bitmap.height);
             }
 
-            newBitmap.draw(bitmap, _matrix);
+            newBitmap.draw(bitmap, matrix);
 
             return newBitmap;
         }
@@ -127,29 +122,27 @@ package nail.utils
 
             if (horizontal || vertical)
             {
-                if (!_matrix)
-                    _matrix = new Matrix();
                 var bmp:BitmapData;
 
                 if (horizontal)
                 {
-                    _matrix.identity();
-                    _matrix.scale(-1, 1);
-                    _matrix.translate(bitmap.width, 0);
+                    var flipHorizontalMatrix:Matrix = new Matrix();
+                    flipHorizontalMatrix.scale(-1, 1);
+                    flipHorizontalMatrix.translate(bitmap.width, 0);
 
                     bmp = new BitmapData(bitmap.width, bitmap.height, bitmap.transparent, 0);
-                    bmp.draw(bitmap, _matrix);
+                    bmp.draw(bitmap, flipHorizontalMatrix);
                     bitmap = bmp;
                 }
 
                 if (vertical)
                 {
-                    _matrix.identity();
-                    _matrix.scale(1, -1);
-                    _matrix.translate(0, bitmap.height);
+                    var flipVerticalMatrix:Matrix = new Matrix();
+                    flipVerticalMatrix.scale(1, -1);
+                    flipVerticalMatrix.translate(0, bitmap.height);
 
                     bmp = new BitmapData(bitmap.width, bitmap.height, bitmap.transparent, 0);
-                    bmp.draw(bitmap, _matrix);
+                    bmp.draw(bitmap, flipVerticalMatrix);
                     bitmap = bmp;
                 }
             }

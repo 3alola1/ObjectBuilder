@@ -27,29 +27,28 @@ package ob.commands.files
     import flash.filesystem.File;
 
     import otlib.core.Version;
-    import otlib.core.ClientFeatures;
 
     public final class CompileAsCommand extends WorkerCommand
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function CompileAsCommand(datFile:File,
-                sprFile:File,
-                serverItemsPath:String,
-                serverItemsFormat:String,
-                serverItemsBinaryPeer:String,
-                version:Version,
-                features:ClientFeatures)
+                                         sprFile:File,
+                                         version:Version,
+                                         extended:Boolean,
+                                         transparency:Boolean,
+                                         improvedAniamtions:Boolean,
+                                         frameGroups:Boolean)
         {
             super(datFile.nativePath,
-                    sprFile.nativePath,
-                    serverItemsPath,
-                    serverItemsFormat,
-                    serverItemsBinaryPeer,
-                    version,
-                    features);
+                  sprFile.nativePath,
+                  version,
+                  extended,
+                  transparency,
+                  improvedAniamtions,
+                  frameGroups);
         }
     }
 }

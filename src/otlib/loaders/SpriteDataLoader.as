@@ -53,48 +53,41 @@ package otlib.loaders
 
     public class SpriteDataLoader extends EventDispatcher
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var _spriteDataList:Vector.<SpriteData>;
         private var _files:Vector.<PathHelper>;
         private var _index:int;
         private var _cancel:Boolean;
 
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get spriteDataList():Vector.<SpriteData>
-        {
-            return _spriteDataList;
-        }
-        public function get length():uint
-        {
-            return _files ? _files.length : 0;
-        }
+        public function get spriteDataList():Vector.<SpriteData> { return _spriteDataList; }
+        public function get length():uint { return _files ? _files.length : 0; }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function SpriteDataLoader()
         {
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function load(file:PathHelper):void
         {
-            if (!file)
-            {
+            if (!file) {
                 throw new NullArgumentError("file");
             }
 
@@ -103,20 +96,18 @@ package otlib.loaders
 
         public function loadFiles(files:Vector.<PathHelper>):void
         {
-            if (!files)
-            {
+            if (!files) {
                 throw new NullArgumentError("files");
             }
 
-            if (files.length > 0)
-            {
+            if (files.length > 0) {
                 this.onLoad(files);
             }
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Private
-        // --------------------------------------
+        //--------------------------------------
 
         private function onLoad(files:Vector.<PathHelper>):void
         {
@@ -128,8 +119,7 @@ package otlib.loaders
 
         private function loadNext():void
         {
-            if (_cancel)
-            {
+            if (_cancel) {
                 _spriteDataList = null;
                 _files = null;
                 _index = -1;
@@ -138,27 +128,22 @@ package otlib.loaders
 
             _index++;
 
-            if (hasEventListener(ProgressEvent.PROGRESS))
-            {
-                dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, ProgressBarID.METADATA, _index, _files.length));
+            if (hasEventListener(ProgressEvent.PROGRESS)) {
+                dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, ProgressBarID.DEFAULT, _index, _files.length));
             }
 
-            if (_index >= _files.length)
-            {
+            if (_index >= _files.length) {
                 dispatchEvent(new Event(Event.COMPLETE));
                 return;
             }
 
             var file:File = new File(_files[_index].nativePath);
-            if (ImageFormat.hasImageFormat(file.extension))
-            {
+            if (ImageFormat.hasImageFormat(file.extension)) {
                 if (file.extension == ImageFormat.BMP)
                     loadImageFormat1(file, _files[_index].id);
                 else
                     loadImageFormat2(file, _files[_index].id);
-            }
-            else
-            {
+            } else {
                 loadNext();
             }
         }
@@ -169,7 +154,6 @@ package otlib.loaders
             var loader:URLLoader = new URLLoader();
             loader.dataFormat = URLLoaderDataFormat.BINARY;
             loader.addEventListener(Event.COMPLETE, completeHandler);
-            loader.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
             loader.load(request);
 
             function completeHandler(event:Event):void
@@ -177,33 +161,18 @@ package otlib.loaders
                 var bitmap:BitmapData;
                 try
                 {
-                    if (file.extension == ImageFormat.BMP)
-                    {
+                    if (file.extension == ImageFormat.BMP) {
                         bitmap = new BMPDecoder().decode(loader.data as ByteArray);
                     }
-                }
-                catch (error:Error)
-                {
+                } catch(error:Error) {
+
                     _cancel = true;
                     dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, false, error.getStackTrace()));
                     return;
                 }
 
-                if (!bitmap)
-                {
-                    _cancel = true;
-                    dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, false, "Failed to decode sprite image."));
-                    return;
-                }
-
                 create(id, bitmap);
                 loadNext();
-            }
-
-            function errorHandler(event:IOErrorEvent):void
-            {
-                _spriteDataList = null;
-                dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, false, event.text, event.errorID));
             }
         }
 
@@ -217,14 +186,7 @@ package otlib.loaders
 
             function completeHandler(event:Event):void
             {
-                var bitmap:Bitmap = loader.content as Bitmap;
-                if (!bitmap || !bitmap.bitmapData)
-                {
-                    _spriteDataList = null;
-                    dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, false, "Invalid image format."));
-                    return;
-                }
-                create(id, bitmap.bitmapData);
+                create(id, Bitmap(loader.content).bitmapData);
                 loadNext();
             }
 
@@ -237,14 +199,13 @@ package otlib.loaders
 
         private function create(id:uint, bitmap:BitmapData):void
         {
-            if (bitmap.width != SpriteExtent.DEFAULT_SIZE || bitmap.height != SpriteExtent.DEFAULT_SIZE)
-            {
+            if (bitmap.width != SpriteExtent.DEFAULT_SIZE || bitmap.height != SpriteExtent.DEFAULT_SIZE) {
                 _cancel = true;
                 dispatchEvent(new ErrorEvent(
-                            ErrorEvent.ERROR,
-                            false,
-                            false,
-                            Resources.getString("invalidSpriteSize", SpriteExtent.DEFAULT_VALUE)));
+                    ErrorEvent.ERROR,
+                    false,
+                    false,
+                    Resources.getString("invalidSpriteSize", SpriteExtent.DEFAULT_VALUE)));
                 return;
             }
 

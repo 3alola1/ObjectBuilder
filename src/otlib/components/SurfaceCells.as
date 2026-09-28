@@ -22,152 +22,99 @@
 
 package otlib.components
 {
+    import flash.display.BlendMode;
+    import flash.display.CapsStyle;
+    import flash.display.LineScaleMode;
+
     import mx.core.UIComponent;
 
     [ExcludeClass]
     public class SurfaceCells extends UIComponent
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var _columns:uint;
         private var _rows:uint;
         private var _cellWidth:uint;
         private var _cellHeight:uint;
         private var _subdivisions:Boolean;
-        private var _lineColor:uint = 0;
-        private var _lineAlpha:Number = 1.0;
 
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get cellWidth():uint
-        {
-            return _cellWidth;
-        }
+        public function get cellWidth():uint { return _cellWidth; }
         public function set cellWidth(value:uint):void
         {
-            if (_cellWidth != value)
-            {
+            if (_cellWidth != value) {
                 _cellWidth = value;
                 invalidateDisplayList();
                 invalidateSize();
             }
         }
 
-        public function get cellHeight():uint
-        {
-            return _cellHeight;
-        }
+        public function get cellHeight():uint { return _cellHeight; }
         public function set cellHeight(value:uint):void
         {
-            if (_cellHeight != value)
-            {
+            if (_cellHeight != value) {
                 _cellHeight = value;
                 invalidateDisplayList();
                 invalidateSize();
             }
         }
 
-        public function get columns():uint
-        {
-            return _columns;
-        }
+        public function get columns():uint { return _columns; }
         public function set columns(value:uint):void
         {
-            if (_columns != value)
-            {
+            if (_columns != value) {
                 _columns = value;
                 invalidateDisplayList();
                 invalidateSize();
             }
         }
 
-        public function get rows():uint
-        {
-            return _rows;
-        }
+        public function get rows():uint { return _rows; }
         public function set rows(value:uint):void
         {
-            if (_rows != value)
-            {
+            if (_rows != value) {
                 _rows = value;
                 invalidateDisplayList();
                 invalidateSize();
             }
         }
 
-        public function get subdivisions():Boolean
-        {
-            return _subdivisions;
-        }
+        public function get subdivisions():Boolean { return _subdivisions; }
         public function set subdivisions(value:Boolean):void
         {
-            if (_subdivisions != value)
-            {
+            if (_subdivisions != value) {
                 _subdivisions = value;
                 invalidateDisplayList();
             }
         }
 
-        public function get lineColor():uint
-        {
-            return _lineColor;
-        }
-        public function set lineColor(value:uint):void
-        {
-            if (_lineColor != value)
-            {
-                _lineColor = value;
-                invalidateDisplayList();
-            }
-        }
-
-        public function get lineAlpha():Number
-        {
-            return _lineAlpha;
-        }
-        public function set lineAlpha(value:Number):void
-        {
-            if (_lineAlpha != value)
-            {
-                _lineAlpha = value;
-                invalidateDisplayList();
-            }
-        }
-
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function SurfaceCells()
         {
+            this.blendMode = BlendMode.INVERT;
         }
 
-        /**
-         * Set columns and rows in a single call to avoid double invalidation.
-         */
-        public function setGridSize(cols:uint, rows:uint):void
-        {
-            if (_columns != cols || _rows != rows)
-            {
-                _columns = cols;
-                _rows = rows;
-                invalidateDisplayList();
-                invalidateSize();
-            }
-        }
+        //--------------------------------------------------------------------------
+        // METHODS
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Override Protected
-        // --------------------------------------
+        //--------------------------------------
 
         override protected function measure():void
         {
             super.measure();
-            measuredWidth = _cellWidth * _columns;
+            measuredWidth  = _cellWidth * _columns;
             measuredHeight = _cellHeight * _rows;
         }
 
@@ -181,28 +128,27 @@ package otlib.components
             var y:Number;
 
             graphics.clear();
-            for (var c:uint = 0; c < _columns; c++)
-            {
-                for (var r:uint = 0; r < _rows; r++)
-                {
+            for (var c:uint = 0; c < _columns; c++) {
+                for (var r:uint = 0; r < _rows; r++) {
                     x = c * _cellWidth;
                     y = r * _cellHeight;
 
-                    graphics.lineStyle(0.5, _lineColor, _lineAlpha);
+                    graphics.lineStyle(0.1, 0);
                     graphics.beginFill(0, 0);
                     graphics.drawRect(x, y, _cellWidth, _cellHeight);
-                    graphics.endFill();
 
-                    if (_subdivisions)
-                    {
-                        graphics.lineStyle(0.5, _lineColor, _lineAlpha * 0.3);
+                    if (_subdivisions) {
+                        graphics.endFill();
+                        graphics.lineStyle(0.1, 0, 0.3);
                         graphics.moveTo(x + halfWidth, y);
                         graphics.lineTo(x + halfWidth, y + _cellHeight);
                         graphics.moveTo(x, y + halfHeight);
                         graphics.lineTo(x + _cellWidth, y + halfHeight);
+                        graphics.endFill();
                     }
                 }
             }
+            graphics.endFill();
         }
     }
 }

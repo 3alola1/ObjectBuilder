@@ -28,13 +28,13 @@ package ob.commands.things
 
     public class SetThingListCommand extends WorkerCommand
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        public function SetThingListCommand(selectedIds:Vector.<uint>, things:Vector.<ThingListItem>, forceUpdate:Boolean = false, prevPageId:int = -1, nextPageId:int = -1)
+        public function SetThingListCommand(selectedIds:Vector.<uint>, things:Vector.<ThingListItem>)
         {
-            super(selectedIds, things, forceUpdate, prevPageId, nextPageId);
+            super(selectedIds, things);
         }
     }
 }

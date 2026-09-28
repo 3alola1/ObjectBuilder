@@ -29,18 +29,18 @@ package otlib.things
      */
     public final class MetadataFlags6
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function MetadataFlags6()
         {
             throw new AbstractClassError(MetadataFlags6);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public static const GROUND:uint = 0x00;
         public static const GROUND_BORDER:uint = 0x01;
@@ -57,7 +57,7 @@ package otlib.things
         public static const UNPASSABLE:uint = 0x0C;
         public static const UNMOVEABLE:uint = 0x0D;
         public static const BLOCK_MISSILE:uint = 0x0E;
-        public static const BLOCK_PATHFIND:uint = 0x0F;
+        public static const BLOCK_PATHFIND:uint  = 0x0F;
         public static const NO_MOVE_ANIMATION:uint = 0x10;
         public static const PICKUPABLE:uint = 0x11;
         public static const HANGABLE:uint = 0x12;
@@ -81,7 +81,6 @@ package otlib.things
         public static const WRAPPABLE:uint = 0x24;
         public static const UNWRAPPABLE:uint = 0x25;
         public static const TOP_EFFECT:uint = 0x26;
-        public static const HAS_BONES:uint = 0x27;
         public static const USABLE:uint = 0xFE;
         public static const LAST_FLAG:uint = 0xFF;
         public static const STRING_CHARSET:String = "iso-8859-1";

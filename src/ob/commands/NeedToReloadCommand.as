@@ -24,17 +24,15 @@ package ob.commands
 {
     import com.mignari.workers.WorkerCommand;
 
-    import otlib.core.ClientFeatures;
-
     public class NeedToReloadCommand extends WorkerCommand
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        public function NeedToReloadCommand(features:ClientFeatures)
+        public function NeedToReloadCommand(extended:Boolean, transparency:Boolean, improvedAnimations:Boolean, frameGroups:Boolean)
         {
-            super(features);
+            super(extended, transparency, improvedAnimations, frameGroups);
         }
     }
 }

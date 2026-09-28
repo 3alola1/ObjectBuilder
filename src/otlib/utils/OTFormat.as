@@ -26,18 +26,18 @@ package otlib.utils
 
     public final class OTFormat
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function OTFormat()
         {
             throw new AbstractClassError(OTFormat);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public static const OTBM:String = "otbm";
         public static const OTB:String = "otb";
@@ -45,8 +45,6 @@ package otlib.utils
         public static const DAT:String = "dat";
         public static const SPR:String = "spr";
         public static const XML:String = "xml";
-        public static const TOML:String = "toml";
         public static const LUA:String = "lua";
-        public static const ASSETS:String = "assets";
     }
 }

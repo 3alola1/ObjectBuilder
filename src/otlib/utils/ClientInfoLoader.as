@@ -37,7 +37,6 @@ package otlib.utils
 
     import otlib.core.Version;
     import otlib.core.VersionStorage;
-    import otlib.core.ClientFeatures;
     import otlib.resources.Resources;
 
     [Event(name="complete", type="flash.events.Event")]
@@ -48,9 +47,9 @@ package otlib.utils
 
     public class ClientInfoLoader extends EventDispatcher
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var m_otfi:File;
         private var m_dat:File;
@@ -59,30 +58,27 @@ package otlib.utils
         private var m_total:uint;
         private var m_loaded:uint;
 
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get clientInfo():ClientInfo
-        {
-            return m_clientInfo;
-        }
+        public function get clientInfo():ClientInfo { return m_clientInfo; }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function ClientInfoLoader()
         {
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function load(dat:File, spr:File, extended:Boolean):void
         {
@@ -106,16 +102,15 @@ package otlib.utils
             m_dat = dat;
             m_spr = spr;
             m_clientInfo = new ClientInfo();
-            m_clientInfo.features = new ClientFeatures();
-            m_clientInfo.features.extended = extended;
+            m_clientInfo.extended = extended;
             m_total = 3;
 
             loadNext();
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Private
-        // --------------------------------------
+        //--------------------------------------
 
         private function loadNext():void
         {
@@ -140,11 +135,10 @@ package otlib.utils
                 var otfi:OTFI = new OTFI();
                 if (otfi.load(m_otfi))
                 {
-                    m_clientInfo.features.extended = otfi.extended;
-                    m_clientInfo.features.transparency = otfi.transparency;
-                    m_clientInfo.features.improvedAnimations = otfi.improvedAnimations;
-                    m_clientInfo.features.frameGroups = otfi.frameGroups;
-                    m_clientInfo.features.attributeServer = otfi.attributeServer;
+                    m_clientInfo.extended = otfi.extended;
+                    m_clientInfo.transparency = otfi.transparency;
+                    m_clientInfo.improvedAnimations = otfi.improvedAnimations;
+                    m_clientInfo.frameGroups = otfi.frameGroups;
                     m_clientInfo.spriteSize = otfi.spriteSize;
                     m_clientInfo.spriteDataSize = otfi.spriteDataSize;
                 }
@@ -171,9 +165,9 @@ package otlib.utils
             stream.openAsync(m_spr, FileMode.READ);
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Event Handlers
-        // --------------------------------------
+        //--------------------------------------
 
         private function readMetadaInfo(stream:FileStream):void
         {
@@ -191,8 +185,8 @@ package otlib.utils
             m_clientInfo.sprSignature = stream.readUnsignedInt();
 
             var version:Version = VersionStorage.getInstance().getBySignatures(
-                    m_clientInfo.datSignature,
-                    m_clientInfo.sprSignature);
+                m_clientInfo.datSignature,
+                m_clientInfo.sprSignature);
 
             if (!version)
             {
@@ -203,7 +197,7 @@ package otlib.utils
                 m_clientInfo.maxSpriteId = 0;
 
                 dispatchEvent(new Event(Event.COMPLETE));
-                dispatchEvent(createErrorEvent(Resources.getString("unsupportedVersion")));
+                dispatchEvent( createErrorEvent( Resources.getString("unsupportedVersion") ) );
                 return;
             }
 
@@ -213,7 +207,7 @@ package otlib.utils
             if (m_clientInfo.extended || version.value >= 960)
             {
                 m_clientInfo.maxSpriteId = stream.readUnsignedInt();
-                m_clientInfo.features.extended = true;
+                m_clientInfo.extended = true;
             }
             else
                 m_clientInfo.maxSpriteId = stream.readUnsignedShort();
@@ -246,7 +240,7 @@ package otlib.utils
         private function ioErrorHandler(event:IOErrorEvent):void
         {
             m_clientInfo = null;
-            dispatchEvent(createErrorEvent(event.text, event.errorID));
+            dispatchEvent( createErrorEvent(event.text, event.errorID) );
         }
 
         private function createErrorEvent(text:String, id:uint = 0):ErrorEvent

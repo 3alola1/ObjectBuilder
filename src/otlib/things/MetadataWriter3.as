@@ -27,37 +27,35 @@ package otlib.things
      */
     public class MetadataWriter3 extends MetadataWriter
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function MetadataWriter3()
         {
 
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public Override
-        // --------------------------------------
+        //--------------------------------------
 
         public override function writeProperties(type:ThingType):Boolean
         {
             if (type.category == ThingCategory.ITEM)
                 return false;
 
-            if (type.hasLight)
-            {
+            if (type.hasLight) {
                 writeByte(MetadataFlags3.HAS_LIGHT);
                 writeShort(type.lightLevel);
                 writeShort(type.lightColor);
             }
 
-            if (type.hasOffset)
-            {
+            if (type.hasOffset) {
                 writeByte(MetadataFlags3.HAS_OFFSET);
                 writeShort(type.offsetX);
                 writeShort(type.offsetY);
@@ -75,12 +73,10 @@ package otlib.things
             if (type.category != ThingCategory.ITEM)
                 return false;
 
-            if (type.isGround)
-            {
+            if (type.isGround) {
                 writeByte(MetadataFlags3.GROUND);
                 writeShort(type.groundSpeed);
-            }
-            else if (type.isGroundBorder)
+            } else if (type.isGroundBorder)
                 writeByte(MetadataFlags3.GROUND_BORDER);
             else if (type.isOnBottom)
                 writeByte(MetadataFlags3.ON_BOTTOM);
@@ -99,16 +95,14 @@ package otlib.things
             if (type.forceUse)
                 writeByte(MetadataFlags3.FORCE_USE);
 
-            if (type.writable)
-            {
+            if (type.writable) {
                 writeByte(MetadataFlags3.WRITABLE);
-                writeShort(type.maxReadWriteChars);
+                writeShort(type.maxTextLength);
             }
 
-            if (type.writableOnce)
-            {
+            if (type.writableOnce) {
                 writeByte(MetadataFlags3.WRITABLE_ONCE);
-                writeShort(type.maxReadChars);
+                writeShort(type.maxTextLength);
             }
 
             if (type.isFluidContainer)
@@ -144,8 +138,7 @@ package otlib.things
             if (type.rotatable)
                 writeByte(MetadataFlags3.ROTATABLE);
 
-            if (type.hasLight)
-            {
+            if (type.hasLight) {
                 writeByte(MetadataFlags3.HAS_LIGHT);
                 writeShort(type.lightLevel);
                 writeShort(type.lightColor);
@@ -154,15 +147,13 @@ package otlib.things
             if (type.floorChange)
                 writeByte(MetadataFlags3.FLOOR_CHANGE);
 
-            if (type.hasOffset)
-            {
+            if (type.hasOffset) {
                 writeByte(MetadataFlags3.HAS_OFFSET);
                 writeShort(type.offsetX);
                 writeShort(type.offsetY);
             }
 
-            if (type.hasElevation)
-            {
+            if (type.hasElevation) {
                 writeByte(MetadataFlags3.HAS_ELEVATION);
                 writeShort(type.elevation);
             }
@@ -173,14 +164,12 @@ package otlib.things
             if (type.animateAlways)
                 writeByte(MetadataFlags3.ANIMATE_ALWAYS);
 
-            if (type.miniMap)
-            {
+            if (type.miniMap) {
                 writeByte(MetadataFlags3.MINI_MAP);
                 writeShort(type.miniMapColor);
             }
 
-            if (type.isLensHelp)
-            {
+            if (type.isLensHelp) {
                 writeByte(MetadataFlags3.LENS_HELP);
                 writeShort(type.lensHelp);
             }

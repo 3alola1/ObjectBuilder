@@ -24,37 +24,36 @@ package otlib.things
 {
     import otlib.animation.FrameGroup;
     import otlib.things.FrameGroupType;
-    import otlib.utils.DictionaryUtil;
+	import otlib.utils.DictionaryUtil;
 
     /**
      * Writer for versions 7.10 - 7.30
      */
     public class MetadataWriter1 extends MetadataWriter
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function MetadataWriter1()
         {
 
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public Override
-        // --------------------------------------
+        //--------------------------------------
 
         public override function writeProperties(type:ThingType):Boolean
         {
             if (type.category == ThingCategory.ITEM)
                 return false;
 
-            if (type.hasLight)
-            {
+            if (type.hasLight) {
                 writeByte(MetadataFlags1.HAS_LIGHT);
                 writeShort(type.lightLevel);
                 writeShort(type.lightColor);
@@ -75,12 +74,10 @@ package otlib.things
             if (type.category != ThingCategory.ITEM)
                 return false;
 
-            if (type.isGround)
-            {
+            if (type.isGround) {
                 writeByte(MetadataFlags1.GROUND);
                 writeShort(type.groundSpeed);
-            }
-            else if (type.isOnBottom)
+            } else if (type.isOnBottom)
                 writeByte(MetadataFlags1.ON_BOTTOM);
             else if (type.isOnTop)
                 writeByte(MetadataFlags1.ON_TOP);
@@ -97,16 +94,14 @@ package otlib.things
             if (type.forceUse)
                 writeByte(MetadataFlags1.FORCE_USE);
 
-            if (type.writable)
-            {
+            if (type.writable) {
                 writeByte(MetadataFlags1.WRITABLE);
-                writeShort(type.maxReadWriteChars);
+                writeShort(type.maxTextLength);
             }
 
-            if (type.writableOnce)
-            {
+            if (type.writableOnce) {
                 writeByte(MetadataFlags1.WRITABLE_ONCE);
-                writeShort(type.maxReadChars);
+                writeShort(type.maxTextLength);
             }
 
             if (type.isFluidContainer)
@@ -130,8 +125,7 @@ package otlib.things
             if (type.pickupable)
                 writeByte(MetadataFlags1.PICKUPABLE);
 
-            if (type.hasLight)
-            {
+            if (type.hasLight) {
                 writeByte(MetadataFlags1.HAS_LIGHT);
                 writeShort(type.lightLevel);
                 writeShort(type.lightColor);
@@ -143,8 +137,7 @@ package otlib.things
             if (type.isFullGround)
                 writeByte(MetadataFlags1.FULL_GROUND);
 
-            if (type.hasElevation)
-            {
+            if (type.hasElevation) {
                 writeByte(MetadataFlags1.HAS_ELEVATION);
                 writeShort(type.elevation);
             }
@@ -152,8 +145,7 @@ package otlib.things
             if (type.hasOffset)
                 writeByte(MetadataFlags1.HAS_OFFSET);
 
-            if (type.miniMap)
-            {
+            if (type.miniMap) {
                 writeByte(MetadataFlags1.MINI_MAP);
                 writeShort(type.miniMapColor);
             }
@@ -170,8 +162,7 @@ package otlib.things
             if (type.topEffect && type.category == ThingCategory.EFFECT)
                 writeByte(MetadataFlags1.TOP_EFFECT);
 
-            if (type.isLensHelp)
-            {
+            if (type.isLensHelp) {
                 writeByte(MetadataFlags1.LENS_HELP);
                 writeShort(type.lensHelp);
             }
@@ -187,55 +178,47 @@ package otlib.things
             return true;
         }
 
-        public override function writeTexturePatterns(type:ThingType):Boolean
+        public override function writeTexturePatterns(type:ThingType, extended:Boolean, frameDurations:Boolean, frameGroups:Boolean):Boolean
         {
-            var extended:Boolean = features ? features.extended : false;
-            var frameDurations:Boolean = features ? features.improvedAnimations : false;
-            var frameGroups:Boolean = features ? features.frameGroups : false;
-
             var groupCount:uint = 1;
-            if (frameGroups && type.category == ThingCategory.OUTFIT)
-            {
+			if(frameGroups && type.category == ThingCategory.OUTFIT) {
                 groupCount = type.frameGroups.length;
-                writeByte(groupCount);
-            }
+				writeByte(groupCount);
+			}
 
             var i:uint;
             var groupType:uint;
-            var frameGroup:FrameGroup;
-            for (groupType = 0; groupType < groupCount; groupType++)
+			var frameGroup:FrameGroup;
+            for(groupType = 0; groupType < groupCount; groupType++)
             {
-                if (frameGroups && type.category == ThingCategory.OUTFIT)
+                if(frameGroups && type.category == ThingCategory.OUTFIT)
                 {
                     var group:uint = groupType;
-                    if (groupCount < 2)
+                    if(groupCount < 2)
                         group = 1;
 
                     writeByte(group);
                 }
 
                 frameGroup = type.getFrameGroup(groupType);
-                writeByte(frameGroup.width); // Write width
+                writeByte(frameGroup.width);  // Write width
                 writeByte(frameGroup.height); // Write height
 
-                if (frameGroup.width > 1 || frameGroup.height > 1)
-                {
+                if (frameGroup.width > 1 || frameGroup.height > 1) {
                     writeByte(frameGroup.exactSize); // Write exact size
                 }
 
-                writeByte(frameGroup.layers); // Write layers
+                writeByte(frameGroup.layers);   // Write layers
                 writeByte(frameGroup.patternX); // Write pattern X
                 writeByte(frameGroup.patternY); // Write pattern Y
-                writeByte(frameGroup.frames); // Write frames
+                writeByte(frameGroup.frames);   // Write frames
 
-                if (frameDurations && frameGroup.isAnimation)
-                {
-                    writeByte(frameGroup.animationMode); // Write animation type
-                    writeInt(frameGroup.loopCount); // Write loop count
-                    writeByte(frameGroup.startFrame); // Write start frame
+                if (frameDurations && frameGroup.isAnimation) {
+                    writeByte(frameGroup.animationMode);   // Write animation type
+                    writeInt(frameGroup.loopCount);        // Write loop count
+                    writeByte(frameGroup.startFrame);      // Write start frame
 
-                    for (i = 0; i < frameGroup.frames; i++)
-                    {
+                    for (i = 0; i < frameGroup.frames; i++) {
                         writeUnsignedInt(frameGroup.frameDurations[i].minimum); // Write minimum duration
                         writeUnsignedInt(frameGroup.frameDurations[i].maximum); // Write maximum duration
                     }
@@ -243,8 +226,7 @@ package otlib.things
 
                 var spriteIndex:Vector.<uint> = frameGroup.spriteIndex;
                 var length:uint = spriteIndex.length;
-                for (i = 0; i < length; i++)
-                {
+                for (i = 0; i < length; i++) {
                     // Write sprite index
                     if (extended)
                         writeUnsignedInt(spriteIndex[i]);

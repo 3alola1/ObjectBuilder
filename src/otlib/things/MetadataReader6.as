@@ -22,38 +22,35 @@
 
 package otlib.things
 {
-    import otlib.geom.Direction;
     import otlib.resources.Resources;
-    import otlib.geom.Direction;
 
     /**
      * Reader for versions 10.10 - 10.56
      */
     public class MetadataReader6 extends MetadataReader
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function MetadataReader6()
         {
 
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public Override
-        // --------------------------------------
+        //--------------------------------------
 
         public override function readProperties(type:ThingType):Boolean
         {
             var flag:uint = 0;
 
-            while (flag < MetadataFlags6.LAST_FLAG)
-            {
+            while (flag < MetadataFlags6.LAST_FLAG) {
 
                 var previusFlag:uint = flag;
                 flag = readUnsignedByte();
@@ -97,12 +94,12 @@ package otlib.things
 
                     case MetadataFlags6.WRITABLE:
                         type.writable = true;
-                        type.maxReadWriteChars = readUnsignedShort();
+                        type.maxTextLength = readUnsignedShort();
                         break;
 
                     case MetadataFlags6.WRITABLE_ONCE:
                         type.writableOnce = true;
-                        type.maxReadChars = readUnsignedShort();
+                        type.maxTextLength = readUnsignedShort();
                         break;
 
                     case MetadataFlags6.FLUID_CONTAINER:
@@ -175,7 +172,7 @@ package otlib.things
 
                     case MetadataFlags6.HAS_ELEVATION:
                         type.hasElevation = true;
-                        type.elevation = readUnsignedShort();
+                        type.elevation    = readUnsignedShort();
                         break;
 
                     case MetadataFlags6.LYING_OBJECT:
@@ -241,24 +238,12 @@ package otlib.things
                         type.usable = true;
                         break;
 
-                    case MetadataFlags6.HAS_BONES:
-                        type.hasBones = true;
-                        type.bonesOffsetX[Direction.NORTH] = readShort();
-                        type.bonesOffsetY[Direction.NORTH] = readShort();
-                        type.bonesOffsetX[Direction.SOUTH] = readShort();
-                        type.bonesOffsetY[Direction.SOUTH] = readShort();
-                        type.bonesOffsetX[Direction.EAST] = readShort();
-                        type.bonesOffsetY[Direction.EAST] = readShort();
-                        type.bonesOffsetX[Direction.WEST] = readShort();
-                        type.bonesOffsetY[Direction.WEST] = readShort();
-                        break;
-
                     default:
                         throw new Error(Resources.getString("readUnknownFlag",
-                                    flag.toString(16),
-                                    previusFlag.toString(16),
-                                    Resources.getString(type.category),
-                                    type.id));
+                                                            flag.toString(16),
+                                                            previusFlag.toString(16),
+                                                            Resources.getString(type.category),
+                                                            type.id));
                 }
             }
 

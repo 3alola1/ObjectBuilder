@@ -22,13 +22,11 @@
 
 package otlib.utils
 {
-    import otlib.core.ClientFeatures;
-
     public class ClientInfo
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public var clientVersion:uint;
         public var clientVersionStr:String;
@@ -44,54 +42,19 @@ package otlib.utils
         public var sprSignature:uint;
         public var minSpriteId:uint;
         public var maxSpriteId:uint;
-        public var features:ClientFeatures;
+        public var extended:Boolean;
+        public var transparency:Boolean;
+        public var improvedAnimations:Boolean;
+        public var frameGroups:Boolean;
         public var changed:Boolean;
         public var isTemporary:Boolean;
         public var loaded:Boolean;
-        public var otbMajorVersion:uint;
-        public var otbMinorVersion:uint;
-        public var otbItemsCount:uint;
         public var spriteSize:uint;
         public var spriteDataSize:uint;
-        public var loadedFileName:String;
 
-        [Bindable]
-        public var otbLoaded:Boolean;
-
-        // Convenience getters for backward compatibility
-        public function get attributeServer():String
-        {
-            return features ? features.attributeServer : null;
-        }
-
-        public function get extended():Boolean
-        {
-            return features ? features.extended : false;
-        }
-        public function get transparency():Boolean
-        {
-            return features ? features.transparency : false;
-        }
-        public function get improvedAnimations():Boolean
-        {
-            return features ? features.improvedAnimations : false;
-        }
-        public function get frameGroups():Boolean
-        {
-            return features ? features.frameGroups : false;
-        }
-
-        public function get metadataController():String
-        {
-            var val:String = features ? features.metadataController : "default";
-            if (val && val.length > 0)
-                return val.charAt(0).toUpperCase() + val.substr(1);
-            return "Default";
-        }
-
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function ClientInfo()
         {

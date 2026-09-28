@@ -8,23 +8,14 @@ Some features:
 * Support frame groups.
 * It's faster to load or compile your projects.
 * Import or export your objects as sprite sheet.
-* Export All objects or sprites at once.
 * Support for transparent sprites.
 * You're able to cut the imported images.
-* Modify server attributes and flags directly.
-* Optimized rendering and memory usage for large projects.
-* 4K / high-DPI display support.
-* Bulk replace objects and sprites.
-* Quick Save and multiple window support.
-* Edit Pixels - shift sprite pixels with boundary protection.
-* Film Roll view for browsing animation frames.
-* Pixel grid overlay for precise editing.
 
 
 Supported client versions:
 ----
 
-* 7.10 - 13.10
+* 7.10 - 12.86
 
 
 Downloads
@@ -32,7 +23,7 @@ Downloads
 
 #### Windows
 
-Latest Adobe AIR [AdobeAIR 51.2.2.6](https://airsdk.harman.com/runtime).
+Latest Adobe AIR [AdobeAIR 33.1.1.502](https://mega.nz/file/VA8wCQYY#n6WVUTz8E-awaXrwvCPzosvrDehWiVOoT927TG_ihtA).
 Download the .zip file in [releases](https://github.com/punkice3407/ObjectBuilder/releases).
 
 

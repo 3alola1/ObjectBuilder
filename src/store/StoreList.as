@@ -1,29 +1,29 @@
 package store
 {
     import flash.events.Event;
-
+    
     import mx.collections.ArrayCollection;
-
+    
     import spark.components.List;
-
+    
     import store.events.AssetStoreEvent;
 
     [Event(name="importAsset", type="store.events.AssetStoreEvent")]
 
     public final class StoreList extends List
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var m_collection:ArrayCollection;
         private var m_currentIndex:int;
         private var m_loaded:Boolean;
-        private var m_canceled:Boolean;
+        private var m_canceled:Boolean
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function StoreList()
         {
@@ -31,13 +31,13 @@ package store
             dataProvider = m_collection;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function addAsset(asset:StoreAsset):void
         {
@@ -69,9 +69,9 @@ package store
             m_loaded = false;
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Private
-        // --------------------------------------
+        //--------------------------------------
 
         private function loadNext():void
         {
@@ -79,8 +79,7 @@ package store
                 return;
 
             m_currentIndex++;
-            if (m_currentIndex >= m_collection.length)
-            {
+            if (m_currentIndex >= m_collection.length) {
                 m_loaded = true;
                 return;
             }

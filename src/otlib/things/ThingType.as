@@ -22,12 +22,12 @@
 
 package otlib.things
 {
+    import flash.utils.describeType;
 
     import otlib.animation.AnimationMode;
     import otlib.animation.FrameDuration;
     import otlib.animation.FrameGroup;
     import otlib.geom.Size;
-    import otlib.geom.Direction;
     import otlib.resources.Resources;
     import otlib.sprites.Sprite;
     import otlib.things.FrameGroupType;
@@ -38,9 +38,9 @@ package otlib.things
 
     public class ThingType
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public var id:uint;
         public var category:String;
@@ -56,8 +56,7 @@ package otlib.things
         public var hasCharges:Boolean;
         public var writable:Boolean;
         public var writableOnce:Boolean;
-        public var maxReadWriteChars:uint;
-        public var maxReadChars:uint;
+        public var maxTextLength:uint;
         public var isFluidContainer:Boolean;
         public var isFluid:Boolean;
         public var isUnpassable:Boolean;
@@ -79,9 +78,6 @@ package otlib.things
         public var hasOffset:Boolean;
         public var offsetX:int;
         public var offsetY:int;
-        public var hasBones:Boolean;
-        public var bonesOffsetX:Array;
-        public var bonesOffsetY:Array;
         public var hasElevation:Boolean;
         public var elevation:uint;
         public var isLyingObject:Boolean;
@@ -108,54 +104,24 @@ package otlib.things
         public var topEffect:Boolean;
         public var usable:Boolean;
 
-        /** Item name from items.otb or items.xml (server-side name) */
-        public var name:String;
-
         public var frameGroups:Array;
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function ThingType()
         {
             frameGroups = [];
-            bonesOffsetX = [];
-            bonesOffsetY = [];
-
-            bonesOffsetX[Direction.NORTH] = 0;
-            bonesOffsetY[Direction.NORTH] = 0;
-
-            bonesOffsetX[Direction.EAST] = 0;
-            bonesOffsetY[Direction.EAST] = 0;
-
-            bonesOffsetX[Direction.SOUTH] = 0;
-            bonesOffsetY[Direction.SOUTH] = 0;
-
-            bonesOffsetX[Direction.WEST] = 0;
-            bonesOffsetY[Direction.WEST] = 0;
-
-            // UNUSED
-            bonesOffsetX[Direction.NORTHWEST] = 0;
-            bonesOffsetY[Direction.NORTHWEST] = 0;
-
-            bonesOffsetX[Direction.NORTHEAST] = 0;
-            bonesOffsetY[Direction.NORTHEAST] = 0;
-
-            bonesOffsetX[Direction.SOUTHWEST] = 0;
-            bonesOffsetY[Direction.SOUTHWEST] = 0;
-
-            bonesOffsetX[Direction.SOUTHEAST] = 0;
-            bonesOffsetY[Direction.SOUTHEAST] = 0;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function toString():String
         {
@@ -164,110 +130,39 @@ package otlib.things
 
         public function getFrameGroup(groupType:uint):FrameGroup
         {
-            return frameGroups[groupType] as FrameGroup;
+			return frameGroups[groupType] as FrameGroup;
         }
 
-        public function setFrameGroup(groupType:uint, frameGroup:FrameGroup):void
-        {
-            frameGroup.type = groupType;
-            frameGroups[groupType] = frameGroup;
-        }
+		public function setFrameGroup(groupType:uint, frameGroup:FrameGroup):void
+		{
+			frameGroup.type = groupType
+			frameGroups[groupType] = frameGroup
+		}
 
         public function clone():ThingType
         {
             var newThing:ThingType = new ThingType();
-            newThing.id = this.id;
-            newThing.category = this.category;
-            newThing.name = this.name;
-            newThing.copyPropertiesFrom(this);
+            var description:XMLList = describeType(this)..variable;
+            for each (var property:XML in description) {
+                var name:String = property.@name;
+                newThing[name] = this[name];
+            }
 
-            newThing.frameGroups = [];
+			newThing.frameGroups = [];
             for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
             {
                 var group:FrameGroup = this.getFrameGroup(groupType);
-                if (group)
-                    newThing.setFrameGroup(groupType, group.clone());
+                if(group)
+                   newThing.setFrameGroup(groupType, group.clone());
             }
 
             return newThing;
         }
 
-        /**
-         * Copies only the patterns and animation (frameGroups) from another ThingType.
-         * Does NOT copy id, category, name, or properties.
-         * Preserves sprite indices from target (clears them to 0).
-         */
-        public function copyPatternsFrom(source:ThingType):void
-        {
-            this.frameGroups = [];
-            for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
-            {
-                var sourceGroup:FrameGroup = source.getFrameGroup(groupType);
-                if (sourceGroup)
-                {
-                    var clonedGroup:FrameGroup = sourceGroup.clone();
-                    // Clear sprite indices to 0 (keep patterns/animation structure only)
-                    if (clonedGroup.spriteIndex)
-                    {
-                        for (var i:uint = 0; i < clonedGroup.spriteIndex.length; i++)
-                        {
-                            clonedGroup.spriteIndex[i] = 0;
-                        }
-                    }
-                    this.setFrameGroup(groupType, clonedGroup);
-                }
-            }
-        }
-
-        /**
-         * Copies only properties (flags) from another ThingType.
-         * Does NOT copy id, category, name, or frameGroups.
-         */
-        public function copyPropertiesFrom(source:*):void
-        {
-            copyProperties(source, this);
-        }
-
-        /**
-         * Returns all sprite indices from all frame groups as a single vector.
-         * Used by SpritesOptimizer.
-         */
-        public function getSpriteIndex():Vector.<uint>
-        {
-            var result:Vector.<uint> = new Vector.<uint>();
-            for each (var group:FrameGroup in frameGroups)
-            {
-                if (group && group.spriteIndex)
-                {
-                    for (var i:uint = 0; i < group.spriteIndex.length; i++)
-                        result.push(group.spriteIndex[i]);
-                }
-            }
-            return result;
-        }
-
-        /**
-         * Checks if this ThingType has no sprites (all sprite indices are 0).
-         * Returns true if empty (no sprites), false if has at least one non-zero sprite index.
-         */
-        public function isEmpty():Boolean
-        {
-            var frameGroup:FrameGroup = getFrameGroup(FrameGroupType.DEFAULT);
-            if (frameGroup && frameGroup.spriteIndex)
-            {
-                for (var i:uint = 0; i < frameGroup.spriteIndex.length; i++)
-                {
-                    if (frameGroup.spriteIndex[i] != 0)
-                        return false; // Has at least one sprite
-                }
-            }
-            return true; // All indices are 0 or no frameGroup
-        }
-
         private function getFrameIndexes(frameGroup:FrameGroup, spriteLength:uint, firstIndex:uint = 0):Vector.<uint>
         {
             var spriteIndex:Vector.<uint> = new Vector.<uint>();
-            if (!frameGroup)
+            if(!frameGroup)
                 return spriteIndex;
 
             for (var index:uint = firstIndex; index < spriteLength; index++)
@@ -279,7 +174,7 @@ package otlib.things
         public function addFrameGroupState(improvedAnimations:Boolean, duration:uint):void
         {
             var normal:FrameGroup = getFrameGroup(FrameGroupType.DEFAULT);
-            if (!normal || normal.frames < 3)
+            if(!normal || normal.frames < 3)
                 return;
 
             var idle:FrameGroup = normal.clone();
@@ -298,7 +193,7 @@ package otlib.things
             walking.spriteIndex = getFrameIndexes(normal, normal.getTotalSprites(), idleSprites);
             walking.isAnimation = false;
 
-            if (walking.frames > 1)
+            if(walking.frames > 1)
                 walking.isAnimation = true;
 
             walking.frameDurations = new Vector.<FrameDuration>(walking.frames, true);
@@ -306,8 +201,7 @@ package otlib.things
             walking.loopCount = 0;
             walking.startFrame = 0;
 
-            for (var frameId:uint = 0; frameId < walking.frames; frameId++)
-            {
+            for (var frameId:uint = 0; frameId < walking.frames; frameId++) {
                 if (improvedAnimations && normal.frameDurations[frameId])
                     walking.frameDurations[frameId] = normal.frameDurations[frameId].clone();
                 else
@@ -346,13 +240,13 @@ package otlib.things
         {
             var idle:FrameGroup = getFrameGroup(FrameGroupType.DEFAULT);
             var walking:FrameGroup = getFrameGroup(FrameGroupType.WALKING);
-            if (!idle && !walking)
+            if(!normal && !walking)
                 return;
 
             if (removeMounts)
             {
-                idle.patternZ = 1;
-                walking.patternZ = 1;
+                idle.patternZ = 1
+                walking.patternZ = 1
             }
 
             var normal:FrameGroup = idle.clone();
@@ -362,29 +256,29 @@ package otlib.things
 
             var frameSpriteLength:uint = countSpritesInFrame(idle, 0);
             for (var spriteId:uint = 0; spriteId < frameSpriteLength; spriteId++)
-                spriteIndex.push(idle.spriteIndex[spriteId]);
+                spriteIndex.push(idle.spriteIndex[spriteId])
 
             for (spriteId = 0; spriteId < frameSpriteLength; spriteId++)
-                spriteIndex.push(walking.spriteIndex[spriteId]);
+                spriteIndex.push(walking.spriteIndex[spriteId])
 
-            var walkingFramesLength:uint = walking.spriteIndex.length;
+            var walkingFramesLength:uint = walking.spriteIndex.length
             if (walkingFramesLength > frameSpriteLength * 4)
             {
                 // Check for fourth frame in walking
                 for (spriteId = frameSpriteLength * 4; spriteId < (frameSpriteLength * 4) + frameSpriteLength; spriteId++)
-                    spriteIndex.push(walking.spriteIndex[spriteId]);
+                    spriteIndex.push(walking.spriteIndex[spriteId])
             }
             else if (walkingFramesLength > frameSpriteLength)
             {
                 // Check for second frame in walking
                 for (spriteId = frameSpriteLength; spriteId < frameSpriteLength + frameSpriteLength; spriteId++)
-                    spriteIndex.push(walking.spriteIndex[spriteId]);
+                    spriteIndex.push(walking.spriteIndex[spriteId])
             }
             else
             {
                 // Add first frame in walking
                 for (spriteId = 0; spriteId < frameSpriteLength; spriteId++)
-                    spriteIndex.push(walking.spriteIndex[spriteId]);
+                spriteIndex.push(walking.spriteIndex[spriteId])
             }
 
             normal.spriteIndex = spriteIndex;
@@ -401,9 +295,9 @@ package otlib.things
             frameGroups[FrameGroupType.DEFAULT] = normal;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public static function create(id:uint, category:String, frameGroups:Boolean, duration:uint):ThingType
         {
@@ -414,16 +308,16 @@ package otlib.things
             thing.category = category;
             thing.id = id;
 
-            var group:FrameGroup;
+			var group:FrameGroup;
             if (category == ThingCategory.OUTFIT)
             {
                 var groups:uint = FrameGroupType.DEFAULT;
-                if (frameGroups)
+                if(frameGroups)
                     groups = FrameGroupType.WALKING;
 
                 for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= groups; groupType++)
                 {
-                    group = new FrameGroup();
+					group = new FrameGroup();
                     group.type = groupType;
                     group.makeOutfitGroup(duration);
 
@@ -432,7 +326,7 @@ package otlib.things
             }
             else
             {
-                group = new FrameGroup();
+				group = new FrameGroup();
                 if (category == ThingCategory.MISSILE)
                 {
                     group.patternX = 3;
@@ -440,80 +334,10 @@ package otlib.things
                 }
 
                 group.spriteIndex = new Vector.<uint>(group.getTotalSprites(), true);
-                thing.setFrameGroup(FrameGroupType.DEFAULT, group);
+				thing.setFrameGroup(FrameGroupType.DEFAULT, group);
             }
 
             return thing;
-        }
-
-        public static function copyProperties(source:*, target:*):void
-        {
-            if (!source || !target)
-                return;
-
-            target.isGround = source.isGround;
-            target.groundSpeed = source.groundSpeed;
-            target.isGroundBorder = source.isGroundBorder;
-            target.isOnBottom = source.isOnBottom;
-            target.isOnTop = source.isOnTop;
-            target.isContainer = source.isContainer;
-            target.stackable = source.stackable;
-            target.forceUse = source.forceUse;
-            target.multiUse = source.multiUse;
-            target.hasCharges = source.hasCharges;
-            target.writable = source.writable;
-            target.writableOnce = source.writableOnce;
-            target.maxReadWriteChars = source.maxReadWriteChars;
-            target.maxReadChars = source.maxReadChars;
-            target.isFluidContainer = source.isFluidContainer;
-            target.isFluid = source.isFluid;
-            target.isUnpassable = source.isUnpassable;
-            target.isUnmoveable = source.isUnmoveable;
-            target.blockMissile = source.blockMissile;
-            target.blockPathfind = source.blockPathfind;
-            target.noMoveAnimation = source.noMoveAnimation;
-            target.pickupable = source.pickupable;
-            target.hangable = source.hangable;
-            target.isVertical = source.isVertical;
-            target.isHorizontal = source.isHorizontal;
-            target.rotatable = source.rotatable;
-            target.hasLight = source.hasLight;
-            target.lightLevel = source.lightLevel;
-            target.lightColor = source.lightColor;
-            target.dontHide = source.dontHide;
-            target.isTranslucent = source.isTranslucent;
-            target.floorChange = source.floorChange;
-            target.hasOffset = source.hasOffset;
-            target.offsetX = source.offsetX;
-            target.offsetY = source.offsetY;
-            target.hasBones = source.hasBones;
-            target.bonesOffsetX = source.bonesOffsetX ? (source.bonesOffsetX as Array).concat() : [];
-            target.bonesOffsetY = source.bonesOffsetY ? (source.bonesOffsetY as Array).concat() : [];
-            target.hasElevation = source.hasElevation;
-            target.elevation = source.elevation;
-            target.isLyingObject = source.isLyingObject;
-            target.animateAlways = source.animateAlways;
-            target.miniMap = source.miniMap;
-            target.miniMapColor = source.miniMapColor;
-            target.isLensHelp = source.isLensHelp;
-            target.lensHelp = source.lensHelp;
-            target.isFullGround = source.isFullGround;
-            target.ignoreLook = source.ignoreLook;
-            target.cloth = source.cloth;
-            target.clothSlot = source.clothSlot;
-            target.isMarketItem = source.isMarketItem;
-            target.marketName = source.marketName;
-            target.marketCategory = source.marketCategory;
-            target.marketTradeAs = source.marketTradeAs;
-            target.marketShowAs = source.marketShowAs;
-            target.marketRestrictProfession = source.marketRestrictProfession;
-            target.marketRestrictLevel = source.marketRestrictLevel;
-            target.hasDefaultAction = source.hasDefaultAction;
-            target.defaultAction = source.defaultAction;
-            target.wrappable = source.wrappable;
-            target.unwrappable = source.unwrappable;
-            target.topEffect = source.topEffect;
-            target.usable = source.usable;
         }
     }
 }

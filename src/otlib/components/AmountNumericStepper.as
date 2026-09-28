@@ -36,9 +36,9 @@ package otlib.components
 
     public class AmountNumericStepper extends NumericStepper
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         [SkinPart(required="true", type="spark.components.Button")]
         public var firstButton:Button;
@@ -55,68 +55,24 @@ package otlib.components
         private var _dataFormatter:NumberFormatter;
         private var _amount:uint;
         private var _amountChanged:Boolean;
-        private var _lastDisplayedIdCallback:Function;
-        private var _firstDisplayedIdCallback:Function;
-        private var _prevDisplayedIdCallback:Function;
-        private var _nextDisplayedIdCallback:Function;
 
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get amount():uint
-        {
-            return _amount;
-        }
+        public function get amount():uint { return _amount; }
         public function set amount(value:uint):void
         {
-            if (_amount != value)
-            {
+            if (_amount != value) {
                 _amount = value;
                 _amountChanged = true;
                 invalidateProperties();
             }
         }
 
-        public function get lastDisplayedIdCallback():Function
-        {
-            return _lastDisplayedIdCallback;
-        }
-        public function set lastDisplayedIdCallback(value:Function):void
-        {
-            _lastDisplayedIdCallback = value;
-        }
-
-        public function get firstDisplayedIdCallback():Function
-        {
-            return _firstDisplayedIdCallback;
-        }
-        public function set firstDisplayedIdCallback(value:Function):void
-        {
-            _firstDisplayedIdCallback = value;
-        }
-
-        public function get prevDisplayedIdCallback():Function
-        {
-            return _prevDisplayedIdCallback;
-        }
-        public function set prevDisplayedIdCallback(value:Function):void
-        {
-            _prevDisplayedIdCallback = value;
-        }
-
-        public function get nextDisplayedIdCallback():Function
-        {
-            return _nextDisplayedIdCallback;
-        }
-        public function set nextDisplayedIdCallback(value:Function):void
-        {
-            _nextDisplayedIdCallback = value;
-        }
-
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function AmountNumericStepper()
         {
@@ -126,13 +82,13 @@ package otlib.components
             this.focusEnabled = false;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Override Protected
-        // --------------------------------------
+        //--------------------------------------
 
         /**
          *  @private
@@ -141,26 +97,19 @@ package otlib.components
         {
             super.partAdded(partName, instance);
 
-            if (instance == firstButton)
-            {
+            if (instance == firstButton) {
                 firstButton.focusEnabled = false;
                 firstButton.addEventListener(FlexEvent.BUTTON_DOWN, fistButtonDownHandler);
                 firstButton.autoRepeat = false;
-            }
-            else if (instance == previousAmountButton)
-            {
+            } else if (instance == previousAmountButton) {
                 previousAmountButton.focusEnabled = false;
                 previousAmountButton.addEventListener(FlexEvent.BUTTON_DOWN, previousAmountButtonDownHandler);
                 previousAmountButton.autoRepeat = false;
-            }
-            else if (instance == nextAmountButton)
-            {
+            } else if (instance == nextAmountButton) {
                 nextAmountButton.focusEnabled = false;
                 nextAmountButton.addEventListener(FlexEvent.BUTTON_DOWN, nextAmountButtonButtonDownHandler);
                 nextAmountButton.autoRepeat = false;
-            }
-            else if (instance == lastButton)
-            {
+            } else if (instance == lastButton) {
                 lastButton.focusEnabled = false;
                 lastButton.addEventListener(FlexEvent.BUTTON_DOWN, lastButtonDownHandler);
                 lastButton.autoRepeat = false;
@@ -171,30 +120,29 @@ package otlib.components
         {
             super.commitProperties();
 
-            if (_amountChanged)
-            {
+            if (_amountChanged) {
                 this.value = Math.max(minimum, OtlibUtils.hundredFloor(value) - _amount);
                 _amountChanged = false;
             }
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Private
-        // --------------------------------------
+        //--------------------------------------
 
         private function parseFunction(text:String):Number
         {
             return _dataFormatter.parseNumber(text);
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Event Handlers
-        // --------------------------------------
+        //--------------------------------------
 
         protected function fistButtonDownHandler(event:FlexEvent):void
         {
             var current:Number = this.value;
-            this.value = (_firstDisplayedIdCallback != null) ? _firstDisplayedIdCallback() : minimum;
+            this.value = minimum;
 
             if (current != this.value)
                 dispatchEvent(new Event(Event.CHANGE));
@@ -203,24 +151,7 @@ package otlib.components
         protected function previousAmountButtonDownHandler(event:FlexEvent):void
         {
             var current:Number = this.value;
-
-            // Priority: Explicit Pagination -> Heuristic -> Page Math
-            if (_prevDisplayedIdCallback != null)
-            {
-                var prevId:int = _prevDisplayedIdCallback();
-                if (prevId >= 0 && prevId >= minimum)
-                {
-                    this.value = prevId;
-                    if (current != this.value)
-                        dispatchEvent(new Event(Event.CHANGE));
-                    return;
-                }
-            }
-
-            // Standard Page Math
-            var pageNumber:int = Math.floor((value - minimum) / _amount);
-            var prevPageStart:Number = minimum + Math.max(0, pageNumber - 1) * _amount;
-            this.value = Math.max(minimum, prevPageStart);
+            this.value = Math.max(minimum, OtlibUtils.hundredFloor(value) - _amount);
 
             if (current != this.value)
                 dispatchEvent(new Event(Event.CHANGE));
@@ -229,24 +160,7 @@ package otlib.components
         protected function nextAmountButtonButtonDownHandler(event:FlexEvent):void
         {
             var current:Number = this.value;
-
-            // Priority: Explicit Pagination -> Heuristic -> Page Math
-            if (_nextDisplayedIdCallback != null)
-            {
-                var nextId:int = _nextDisplayedIdCallback();
-                if (nextId >= 0 && nextId <= maximum)
-                {
-                    this.value = nextId;
-                    if (current != this.value)
-                        dispatchEvent(new Event(Event.CHANGE));
-                    return;
-                }
-            }
-
-            // Fallback: page-based calculation
-            var pageNum:int = Math.floor((value - minimum) / _amount);
-            var nextStart:Number = minimum + (pageNum + 1) * _amount;
-            this.value = Math.min(maximum, nextStart);
+            this.value = Math.min(maximum, OtlibUtils.hundredFloor(value) + _amount);
 
             if (current != this.value)
                 dispatchEvent(new Event(Event.CHANGE));
@@ -255,7 +169,7 @@ package otlib.components
         protected function lastButtonDownHandler(event:FlexEvent):void
         {
             var current:Number = this.value;
-            this.value = (_lastDisplayedIdCallback != null) ? _lastDisplayedIdCallback() : maximum;
+            this.value = maximum;
 
             if (current != this.value)
                 dispatchEvent(new Event(Event.CHANGE));
@@ -274,8 +188,7 @@ package otlib.components
 
             var current:Number = this.value;
 
-            switch (event.keyCode)
-            {
+            switch (event.keyCode) {
                 case Keyboard.DOWN:
                 case Keyboard.LEFT:
                     changeValueByStep(false);

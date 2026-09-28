@@ -26,49 +26,37 @@ package otlib.events
 
     public class ThingListEvent extends Event
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function ThingListEvent(type:String)
         {
             super(type);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Override Public
-        // --------------------------------------
+        //--------------------------------------
 
         override public function clone():Event
         {
             return new ThingListEvent(this.type);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public static const REPLACE:String = "replace";
         public static const EXPORT:String = "export";
         public static const EDIT:String = "edit";
         public static const DUPLICATE:String = "duplicate";
-        public static const BULK_EDIT:String = "bulkEdit";
         public static const REMOVE:String = "remove";
-        public static const COPY_OBJECT:String = "copyObject";
-        public static const PASTE_OBJECT:String = "pasteObject";
-        public static const COPY_PATTERNS:String = "copyPatterns";
-        public static const PASTE_PATTERNS:String = "pastePatterns";
-        public static const COPY_PROPERTIES:String = "copyProperties";
-        public static const PASTE_PROPERTIES:String = "pasteProperties";
-        public static const COPY_ATTRIBUTES:String = "copyAttributes";
-        public static const PASTE_ATTRIBUTES:String = "pasteAttributes";
-        public static const COPY_CLIENT_ID:String = "copyClientId";
-        public static const COPY_SERVER_ID:String = "copyServerId";
-        public static const COMPARE:String = "compare";
         public static const DISPLAYING_CONTEXT_MENU:String = "displayingContextMenu";
     }
 }

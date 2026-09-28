@@ -34,75 +34,45 @@ package otlib.sprites
 
     public class SpriteData implements IListObject
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var _id:uint;
         private var _pixels:ByteArray;
         private var _rect:Rectangle;
         private var _bitmapData:BitmapData;
 
-        /** Cached cropped bitmap for grid renderer (cropped to non-transparent bounds) */
-        public var croppedBitmap:BitmapData;
-
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get id():uint
-        {
-            return _id;
-        }
-        public function set id(value:uint):void
-        {
-            _id = value;
-        }
-        public function get pixels():ByteArray
-        {
-            return _pixels;
-        }
-        public function set pixels(value:ByteArray):void
-        {
-            _pixels = value;
-            // Pixels mutated — invalidate cached cropped bitmap
-            if (croppedBitmap)
-            {
-                croppedBitmap.dispose();
-                croppedBitmap = null;
-            }
-        }
+        public function get id():uint { return _id; }
+        public function set id(value:uint):void { _id = value; }
+        public function get pixels():ByteArray { return _pixels; }
+        public function set pixels(value:ByteArray):void { _pixels = value; }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function SpriteData()
         {
-            _rect = new Rectangle(0, 0, SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE);
-            // _bitmapData is now lazy-initialized in ensureBitmapData()
+            _rect = new Rectangle(0, 0, SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE)
+            _bitmapData = new BitmapData(SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE, true, 0xFFFF00FF);
         }
 
-        private function ensureBitmapData():BitmapData
-        {
-            if (!_bitmapData)
-            {
-                _bitmapData = new BitmapData(SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE, true, 0xFFFF00FF);
-            }
-            return _bitmapData;
-        }
-
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function toString():String
         {
-            return "[object ThingData id=" + id + "]";
+            return "[object ThingData id="+id+"]";
         }
 
         /**
@@ -110,72 +80,37 @@ package otlib.sprites
          */
         public function getBitmap(backgroundColor:uint = 0x00000000):BitmapData
         {
-            if (!pixels)
-                return null;
+            if (pixels) {
+                var bitmap:BitmapData;
 
-            try
-            {
-                pixels.position = 0;
-                // Create result bitmap directly - avoid intermediate buffer when possible
-                var bitmap:BitmapData = new BitmapData(SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE, true, backgroundColor);
-
-                if (backgroundColor == 0x00000000)
+                try
                 {
-                    // Transparent background: decode directly to result
-                    bitmap.setPixels(_rect, pixels);
-                }
-                else
-                {
-                    // Non-transparent background: need intermediate buffer for alpha blending
-                    var buffer:BitmapData = ensureBitmapData();
-                    buffer.setPixels(_rect, pixels);
-                    bitmap.copyPixels(buffer, _rect, POINT, null, null, true);
+                    pixels.position = 0;
+                    _bitmapData.setPixels(_rect, pixels);
+                    bitmap = new BitmapData(SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE, true, backgroundColor);
+                    bitmap.copyPixels(_bitmapData, _rect, POINT, null, null, true);
+                } catch(error:Error) {
+                    return null;
                 }
                 return bitmap;
-            }
-            catch (error:Error)
-            {
-                return null;
             }
             return null;
         }
 
         public function isEmpty():Boolean
         {
-            if (!pixels)
-                return true;
-
-            pixels.position = 0;
-            var buffer:BitmapData = ensureBitmapData();
-            buffer.setPixels(_rect, pixels);
-            return SpriteUtils.isEmpty(buffer);
-        }
-
-        public function dispose():void
-        {
-            if (_pixels)
-            {
-                _pixels.clear();
-                _pixels = null;
+            if (pixels) {
+                _bitmapData.setPixels(_rect, pixels);
+                return SpriteUtils.isEmpty(_bitmapData);
             }
-            if (_bitmapData)
-            {
-                _bitmapData.dispose();
-                _bitmapData = null;
-            }
-            if (croppedBitmap)
-            {
-                croppedBitmap.dispose();
-                croppedBitmap = null;
-            }
+            return true;
         }
 
         public function clone():SpriteData
         {
             var pixelsCopy:ByteArray;
 
-            if (_pixels)
-            {
+            if (_pixels) {
                 pixelsCopy = new ByteArray();
                 _pixels.position = 0;
                 _pixels.readBytes(pixelsCopy, 0, _pixels.bytesAvailable);
@@ -187,50 +122,18 @@ package otlib.sprites
             return sd;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         private static const POINT:Point = new Point();
-        private static const DEFAULT_RECT:Rectangle = new Rectangle(0, 0, SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE);
-        private static var _emptyPixels:ByteArray;
-        private static var _sharedBitmapBuffer:BitmapData;
-
-        private static function getEmptyPixels():ByteArray
-        {
-            if (!_emptyPixels)
-            {
-                _emptyPixels = new ByteArray();
-                _emptyPixels.length = SpriteExtent.DEFAULT_DATA_SIZE;
-                // Fill with transparent magenta (0xFFFF00FF in ARGB)
-                for (var i:uint = 0; i < SpriteExtent.DEFAULT_DATA_SIZE; i += 4)
-                {
-                    _emptyPixels[i] = 0xFF; // Alpha
-                    _emptyPixels[i + 1] = 0xFF; // Red
-                    _emptyPixels[i + 2] = 0x00; // Green
-                    _emptyPixels[i + 3] = 0xFF; // Blue
-                }
-            }
-            _emptyPixels.position = 0;
-            return _emptyPixels;
-        }
 
         public static function createSpriteData(id:uint = 0, pixels:ByteArray = null):SpriteData
         {
             var data:SpriteData = new SpriteData();
             data.id = id;
 
-            if (pixels)
-            {
-                data.pixels = pixels;
-            }
-            else
-            {
-                // Copy empty pixels instead of creating a new BitmapData
-                var empty:ByteArray = getEmptyPixels();
-                var copy:ByteArray = new ByteArray();
-                copy.writeBytes(empty, 0, empty.length);
-                data.pixels = copy;
-            }
+            var bitmapData:BitmapData = new BitmapData(SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE, true, 0xFFFF00FF);
+            data.pixels = pixels ? pixels : bitmapData.getPixels(new Rectangle(0, 0, SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE));
 
             return data;
         }

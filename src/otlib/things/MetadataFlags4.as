@@ -20,6 +20,7 @@
 *  THE SOFTWARE.
 */
 
+
 package otlib.things
 {
     import nail.errors.AbstractClassError;
@@ -29,18 +30,18 @@ package otlib.things
      */
     public final class MetadataFlags4
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function MetadataFlags4()
         {
             throw new AbstractClassError(MetadataFlags4);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public static const GROUND:uint = 0x00;
         public static const GROUND_BORDER:uint = 0x01;
@@ -58,7 +59,7 @@ package otlib.things
         public static const UNPASSABLE:uint = 0x0D;
         public static const UNMOVEABLE:uint = 0x0E;
         public static const BLOCK_MISSILE:uint = 0x0F;
-        public static const BLOCK_PATHFIND:uint = 0x10;
+        public static const BLOCK_PATHFIND:uint  = 0x10;
         public static const PICKUPABLE:uint = 0x11;
         public static const HANGABLE:uint = 0x12;
         public static const VERTICAL:uint = 0x13;
@@ -75,9 +76,6 @@ package otlib.things
         public static const LENS_HELP:uint = 0x1E;
         public static const FULL_GROUND:uint = 0x1F;
         public static const IGNORE_LOOK:uint = 0x20;
-        public static const WRAPPABLE:uint = 0x24;
-        public static const UNWRAPPABLE:uint = 0x25;
-        public static const HAS_BONES:uint = 0x27;
         public static const LAST_FLAG:uint = 0xFF;
     }
 }

@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<application xmlns="http://ns.adobe.com/air/application/51.2">
+<application xmlns="http://ns.adobe.com/air/application/32.0">
 
 	<id>com.mignari.ObjectBuilder</id>
 	<filename>ObjectBuilder</filename>
 	<name>Object Builder</name>
-	<versionNumber>0.6.0</versionNumber>
-	<versionLabel>0.6.0</versionLabel>
+	<versionNumber>0.5.5</versionNumber>
+	<versionLabel>0.5.5</versionLabel>
 	<copyright>
 		<![CDATA[Copyright (c) 2014-2023 <a href="https://github.com/Mignari/ObjectBuilder/graphs/contributors">Contributors</a>]]>
 	</copyright>
-
-	<allowMultipleInstances>true</allowMultipleInstances>
-
-	<supportedProfiles>extendedDesktop</supportedProfiles>
 
 	<initialWindow>
 		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>

@@ -42,7 +42,6 @@ package otlib.sprites
 
     import otlib.assets.Assets;
     import otlib.core.Version;
-    import otlib.core.ClientFeatures;
     import otlib.core.otlib_internal;
     import otlib.events.ProgressEvent;
     import otlib.resources.Resources;
@@ -51,8 +50,6 @@ package otlib.sprites
     import otlib.utils.ChangeResult;
     import otlib.utils.SpriteUtils;
     import otlib.utils.SpriteExtent;
-    import otlib.core.VersionStorage;
-    import otlib.things.ThingType;
 
     use namespace otlib_internal;
 
@@ -66,9 +63,9 @@ package otlib.sprites
 
     public class SpriteStorage extends EventDispatcher implements IStorage
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         otlib_internal var _sprites:Dictionary;
         otlib_internal var _spritesCount:uint;
@@ -77,65 +74,34 @@ package otlib.sprites
         private var _reader:SpriteReader;
         private var _version:Version;
         private var _signature:uint;
+        private var _extended:Boolean;
+        private var _transparency:Boolean;
         private var _rect:Rectangle;
         private var _point:Point;
         private var _blankSprite:Sprite;
         private var _alertSprite:Sprite;
         private var _headerSize:uint;
-        otlib_internal var _changed:Boolean;
+        private var _changed:Boolean;
         private var _loaded:Boolean;
-        private var _currentFeatures:ClientFeatures;
-        private var _rgbDataBuffer:ByteArray;
 
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get file():File
-        {
-            return _file;
-        }
-        public function get version():Version
-        {
-            return _version;
-        }
-        public function get signature():uint
-        {
-            return _signature;
-        }
-        public function get spritesCount():uint
-        {
-            return _spritesCount;
-        }
-        public function get loaded():Boolean
-        {
-            return _loaded;
-        }
-        public function get changed():Boolean
-        {
-            return _changed;
-        }
-        public function get isFull():Boolean
-        {
-            return (_currentFeatures && !_currentFeatures.extended && _spritesCount == 0xFFFF);
-        }
-        public function get transparency():Boolean
-        {
-            return _currentFeatures ? _currentFeatures.transparency : false;
-        }
+        public function get file():File { return _file; }
+        public function get version():Version { return _version; }
+        public function get signature():uint { return _signature; }
+        public function get spritesCount():uint { return _spritesCount; }
+        public function get loaded():Boolean { return _loaded; }
+        public function get changed():Boolean { return _changed; }
+        public function get isFull():Boolean { return (!_extended && _spritesCount == 0xFFFF); }
+        public function get transparency():Boolean { return _transparency; }
+        public function get alertSprite():Sprite { return _alertSprite; }
+        public function get isTemporary():Boolean { return (_loaded && _file == null); }
 
-        public function get alertSprite():Sprite
-        {
-            return _alertSprite;
-        }
-        public function get isTemporary():Boolean
-        {
-            return (_loaded && _file == null);
-        }
-
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function SpriteStorage()
         {
@@ -143,15 +109,15 @@ package otlib.sprites
             _point = new Point();
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
-        public function load(file:File, version:Version, features:ClientFeatures):void
+        public function load(file:File, version:Version, extended:Boolean, transparency:Boolean):void
         {
             if (!file)
                 throw new NullArgumentError("file");
@@ -162,30 +128,28 @@ package otlib.sprites
             if (loaded)
                 return;
 
-            onLoad(file, version, features, false);
+            dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, ProgressBarID.SPRITES, 0, 100));
+            onLoad(file, version, extended, transparency, false);
         }
 
-        public function createNew(version:Version, features:ClientFeatures):void
+        public function createNew(version:Version, extended:Boolean, transparency:Boolean):void
         {
             if (!version)
                 throw new NullArgumentError("version");
 
-            if (this.loaded)
-                return;
+            if (this.loaded) return;
 
             _version = version;
-            _currentFeatures = features.clone();
-            _currentFeatures.applyVersionDefaults(version.value);
+            _extended = (extended || version.value >= 960);
             _signature = version.sprSignature;
             _spritesCount = 1;
-
-            _headerSize = _currentFeatures.extended ? SpriteFileSize.HEADER_U32 : SpriteFileSize.HEADER_U16;
-
-            _blankSprite = new Sprite(0, _currentFeatures.transparency);
-            _alertSprite = createAlertSprite(_currentFeatures.transparency);
+            _headerSize = _extended ? SpriteFileSize.HEADER_U32 : SpriteFileSize.HEADER_U16;
+            _transparency = transparency;
+            _blankSprite = new Sprite(0, transparency);
+            _alertSprite = createAlertSprite(transparency);
             _sprites = new Dictionary();
             _sprites[0] = _blankSprite;
-            _sprites[1] = new Sprite(1, _currentFeatures.transparency);
+            _sprites[1] = new Sprite(1, transparency);
             _changed = false;
             _loaded = true;
 
@@ -194,14 +158,12 @@ package otlib.sprites
 
         public function addSprite(pixels:ByteArray):ChangeResult
         {
-            if (!pixels)
-            {
+            if (!pixels) {
                 throw new NullArgumentError("pixels");
             }
 
             var result:ChangeResult = internalAddSprite(pixels);
-            if (result.done && hasEventListener(StorageEvent.CHANGE))
-            {
+            if (result.done && hasEventListener(StorageEvent.CHANGE)) {
                 _changed = true;
                 dispatchEvent(new StorageEvent(StorageEvent.CHANGE));
             }
@@ -211,14 +173,12 @@ package otlib.sprites
 
         public function addSprites(sprites:Vector.<ByteArray>):ChangeResult
         {
-            if (!sprites)
-            {
+            if (!sprites) {
                 throw new NullArgumentError("sprites");
             }
 
             var result:ChangeResult = internalAddSprites(sprites);
-            if (result.done && hasEventListener(StorageEvent.CHANGE))
-            {
+            if (result.done && hasEventListener(StorageEvent.CHANGE)) {
                 _changed = true;
                 dispatchEvent(new StorageEvent(StorageEvent.CHANGE));
             }
@@ -228,24 +188,20 @@ package otlib.sprites
 
         public function replaceSprite(id:uint, pixels:ByteArray):ChangeResult
         {
-            if (id == 0 || id > _spritesCount)
-            {
+            if (id == 0 || id > _spritesCount) {
                 throw new ArgumentError(Resources.getString("indexOutOfRange"));
             }
 
-            if (!pixels)
-            {
+            if (!pixels) {
                 throw new NullArgumentError("pixels");
             }
 
-            if (pixels.length != SpriteExtent.DEFAULT_DATA_SIZE)
-            {
+            if (pixels.length != SpriteExtent.DEFAULT_DATA_SIZE) {
                 throw new ArgumentError("Parameter pixels has an invalid length.");
             }
 
             var result:ChangeResult = internalReplaceSprite(id, pixels);
-            if (result.done && hasEventListener(StorageEvent.CHANGE))
-            {
+            if (result.done && hasEventListener(StorageEvent.CHANGE)) {
                 _changed = true;
                 dispatchEvent(new StorageEvent(StorageEvent.CHANGE));
             }
@@ -255,14 +211,12 @@ package otlib.sprites
 
         public function replaceSprites(sprites:Vector.<SpriteData>):ChangeResult
         {
-            if (!sprites)
-            {
+            if (!sprites) {
                 throw new NullArgumentError("sprites");
             }
 
             var result:ChangeResult = internalReplaceSprites(sprites);
-            if (result.done && hasEventListener(StorageEvent.CHANGE))
-            {
+            if (result.done && hasEventListener(StorageEvent.CHANGE)) {
                 _changed = true;
                 dispatchEvent(new StorageEvent(StorageEvent.CHANGE));
             }
@@ -272,14 +226,12 @@ package otlib.sprites
 
         public function removeSprite(id:uint):ChangeResult
         {
-            if (id == 0 || id > _spritesCount)
-            {
+            if (id == 0 || id > _spritesCount) {
                 throw new ArgumentError(Resources.getString("indexOutOfRange"));
             }
 
             var result:ChangeResult = internalRemoveSprite(id);
-            if (result.done && hasEventListener(StorageEvent.CHANGE))
-            {
+            if (result.done && hasEventListener(StorageEvent.CHANGE)) {
                 _changed = true;
                 dispatchEvent(new StorageEvent(StorageEvent.CHANGE));
             }
@@ -289,14 +241,12 @@ package otlib.sprites
 
         public function removeSprites(sprites:Vector.<uint>):ChangeResult
         {
-            if (!sprites)
-            {
+            if (!sprites) {
                 throw new NullArgumentError("sprites");
             }
 
             var result:ChangeResult = internalRemoveSprites(sprites);
-            if (result.done && hasEventListener(StorageEvent.CHANGE))
-            {
+            if (result.done && hasEventListener(StorageEvent.CHANGE)) {
                 _changed = true;
                 dispatchEvent(new StorageEvent(StorageEvent.CHANGE));
             }
@@ -306,19 +256,16 @@ package otlib.sprites
 
         public function getSprite(id:uint):Sprite
         {
-            if (id == uint.MAX_VALUE)
-                return _alertSprite;
+            if (id == uint.MAX_VALUE) return _alertSprite;
 
-            if (_loaded && id <= _spritesCount)
-            {
+            if (_loaded && id <= _spritesCount) {
                 var sprite:Sprite;
                 if (_sprites[id] !== undefined)
                     sprite = Sprite(_sprites[id]);
                 else
                     sprite = readSprite(id);
 
-                if (!sprite)
-                {
+                if (!sprite) {
                     sprite = _blankSprite;
                 }
 
@@ -329,18 +276,14 @@ package otlib.sprites
 
         public function getPixels(id:uint):ByteArray
         {
-            if (_loaded)
-            {
+            if (_loaded) {
                 var sprite:Sprite = getSprite(id);
-                if (sprite)
-                {
+                if (sprite) {
                     var pixels:ByteArray;
                     try
                     {
-                        pixels = sprite.getPixels();
-                    }
-                    catch (error:Error)
-                    {
+                        pixels =  sprite.getPixels();
+                    } catch (error:Error) {
                         Log.error(Resources.getString("failedToGetSprite", id), error.getStackTrace());
                         return _alertSprite.getPixels();
                     }
@@ -362,21 +305,19 @@ package otlib.sprites
          */
         public function copyPixels(id:int, bitmap:BitmapData, x:int, y:int):void
         {
-            if (!this.loaded || !bitmap)
-                return;
+            if (!this.loaded || !bitmap) return;
 
             try
             {
                 var sprite:BitmapData = getBitmap(id, true);
-                if (!sprite)
-                    return;
+                if (!sprite) return;
 
                 _point.x = x;
                 _point.y = y;
 
                 bitmap.copyPixels(sprite, _rect, _point, null, null, true);
             }
-            catch (error:Error)
+            catch(error:Error)
             {
                 bitmap.copyPixels(SpriteUtils.createAlertBitmap(), _rect, _point, null, null, true);
                 Log.error(Resources.getString("failedToGetSprite", id), error.getStackTrace());
@@ -402,105 +343,6 @@ package otlib.sprites
             return bitmap;
         }
 
-        /**
-         * Calculates sprite hash for a ThingType like ItemEditor's ClientItem.SpriteHash.
-         * Uses BGR0 format with 0x11 for transparent, vertically flipped.
-         * @param thingType The thing to calculate hash for
-         * @return 16-byte MD5 hash as ByteArray
-         */
-        public function getSpriteHash(thingType:ThingType):ByteArray
-        {
-            import otlib.animation.FrameGroup;
-            import otlib.things.FrameGroupType;
-            import flash.utils.Endian;
-            import by.blooddy.crypto.MD5;
-
-            var hash:ByteArray = new ByteArray();
-            hash.length = 16;
-            hash.position = 0;
-
-            var group:FrameGroup = thingType.getFrameGroup(FrameGroupType.DEFAULT);
-            if (!group)
-                return hash;
-
-            var layers:uint = group.layers;
-            var height:uint = group.height;
-            var width:uint = group.width;
-            var spritesToHash:uint = width * height * layers;
-            var spriteIndexList:Vector.<uint> = group.spriteIndex;
-
-            if (!spriteIndexList || spriteIndexList.length < spritesToHash)
-                return hash;
-
-            var stream:ByteArray = new ByteArray();
-            stream.endian = Endian.LITTLE_ENDIAN;
-
-            const TRANSPARENT_COLOR:uint = 0x11;
-            const SPRITE_SIZE:uint = 32;
-
-            // Reusable buffer for getRGBData calls
-            if (!_rgbDataBuffer)
-            {
-                _rgbDataBuffer = new ByteArray();
-                _rgbDataBuffer.length = SpriteExtent.DEFAULT_SIZE * SpriteExtent.DEFAULT_SIZE * 3;
-            }
-
-            for (var i:uint = 0; i < spritesToHash; i++)
-            {
-                var spriteId:uint = spriteIndexList[i];
-                var sprite:Sprite = getSprite(spriteId);
-
-                if (!sprite || sprite.isEmpty)
-                {
-                    // Write transparent sprite
-                    for (var ty:int = 0; ty < SPRITE_SIZE; ty++)
-                    {
-                        for (var tx:int = 0; tx < SPRITE_SIZE; tx++)
-                        {
-                            stream.writeByte(TRANSPARENT_COLOR);
-                            stream.writeByte(TRANSPARENT_COLOR);
-                            stream.writeByte(TRANSPARENT_COLOR);
-                            stream.writeByte(0);
-                        }
-                    }
-                    continue;
-                }
-
-                var rgbData:ByteArray = sprite.getRGBData(_rgbDataBuffer);
-
-                // Flip vertically and convert RGB to BGR0
-                for (var y:int = 0; y < SPRITE_SIZE; y++)
-                {
-                    for (var x:int = 0; x < SPRITE_SIZE; x++)
-                    {
-                        var srcY:int = SPRITE_SIZE - y - 1;
-                        var srcPos:int = srcY * 96 + x * 3;
-
-                        var r:uint = rgbData[srcPos + 0];
-                        var g:uint = rgbData[srcPos + 1];
-                        var b:uint = rgbData[srcPos + 2];
-
-                        stream.writeByte(b);
-                        stream.writeByte(g);
-                        stream.writeByte(r);
-                        stream.writeByte(0);
-                    }
-                }
-            }
-
-            stream.position = 0;
-            var result:String = MD5.hashBytes(stream);
-
-            hash.clear();
-            for (var j:uint = 0; j < result.length; j += 2)
-            {
-                var hex:String = result.substr(j, 2);
-                hash.writeByte(parseInt(hex, 16));
-            }
-
-            return hash;
-        }
-
         public function hasSpriteId(id:uint):Boolean
         {
             if (_loaded && id <= _spritesCount)
@@ -518,18 +360,15 @@ package otlib.sprites
          */
         public function compare(id:uint, pixels:ByteArray):Boolean
         {
-            if (!pixels)
-            {
+            if (!pixels) {
                 throw new NullArgumentError("pixels");
             }
 
-            if (pixels.length != SpriteExtent.DEFAULT_DATA_SIZE)
-            {
+            if (pixels.length != SpriteExtent.DEFAULT_DATA_SIZE) {
                 throw new ArgumentError("Parameter pixels has an invalid length.");
             }
 
-            if (hasSpriteId(id))
-            {
+            if (hasSpriteId(id)) {
                 pixels.position = 0;
                 var bmp1:BitmapData = new BitmapData(SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE, true, 0xFFFF00FF);
                 bmp1.setPixels(bmp1.rect, pixels);
@@ -537,21 +376,14 @@ package otlib.sprites
                 otherPixels.position = 0;
                 var bmp2:BitmapData = new BitmapData(SpriteExtent.DEFAULT_SIZE, SpriteExtent.DEFAULT_SIZE, true, 0xFFFF00FF);
                 bmp2.setPixels(bmp2.rect, otherPixels);
-
-                var result:Boolean = (bmp1.compare(bmp2) == 0);
-
-                // Dispose BitmapData to prevent memory leak
-                bmp1.dispose();
-                bmp2.dispose();
-
-                return result;
+                return (bmp1.compare(bmp2) == 0);
             }
             return false;
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Private
-        // --------------------------------------
+        //--------------------------------------
 
         private function readSprite(id:uint):Sprite
         {
@@ -559,7 +391,7 @@ package otlib.sprites
             {
                 return _reader.readSprite(id);
             }
-            catch (error:Error)
+            catch(error:Error)
             {
                 Log.error(Resources.getString("failedToGetSprite", id), error.getStackTrace());
                 return _alertSprite;
@@ -568,37 +400,33 @@ package otlib.sprites
             return null;
         }
 
-        public function compile(file:File, version:Version, features:ClientFeatures):Boolean
+        public function compile(file:File, version:Version, extended:Boolean, transparency:Boolean):Boolean
         {
-            if (!file)
-            {
+            if (!file) {
                 throw new NullArgumentError("file");
             }
 
-            if (!version)
-            {
+            if (!version) {
                 throw new NullArgumentError("version");
             }
 
-            if (!_loaded)
-                return false;
+            if (!_loaded) return false;
 
-            var compileFeatures:ClientFeatures = features.clone();
-            compileFeatures.applyVersionDefaults(version.value);
-            var extended:Boolean = compileFeatures.extended;
-            var transparency:Boolean = compileFeatures.transparency;
+            extended = (extended || version.value >= 960);
             var equal:Boolean = FileUtil.equals(_file, file);
             var stream:FileStream;
 
             // If is unmodified and the version is equal only save raw bytes.
             if (!this.isTemporary &&
-                    !this.changed &&
-                    _version.equals(version) &&
-                    _currentFeatures.extended == extended &&
-                    _currentFeatures.transparency == transparency)
+                !this.changed &&
+                _version.equals(version) &&
+                _extended == extended &&
+                _transparency == transparency)
             {
                 if (!equal)
                     FileUtil.copyToAsync(_file, file);
+
+                dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, ProgressBarID.SPRITES, _spritesCount, _spritesCount));
                 return true;
             }
 
@@ -615,60 +443,59 @@ package otlib.sprites
                 stream.writeUnsignedInt(version.sprSignature); // Write spr signature.
 
                 // Write sprites count.
-                if (extended || version.value >= 960)
-                {
+                if (extended || version.value >= 960) {
                     count = _spritesCount;
                     headSize = SpriteFileSize.HEADER_U32;
                     stream.writeUnsignedInt(count);
-                }
-                else
-                {
+                } else {
                     count = _spritesCount >= 0xFFFF ? 0xFFFE : _spritesCount;
                     headSize = SpriteFileSize.HEADER_U16;
                     stream.writeShort(count);
                 }
 
                 var addressPosition:uint = stream.position;
-                var offset:uint = (count * SpriteFileSize.ADDRESS) + headSize;
+                var offset:uint = (count * 4) + headSize;
                 var dispatchProgess:Boolean = this.hasEventListener(ProgressEvent.PROGRESS);
+                var progressEvent:ProgressEvent = new ProgressEvent(ProgressEvent.PROGRESS, ProgressBarID.SPRITES);
+                progressEvent.total = count;
 
-                for (var i:uint = 1; i <= count; i++)
-                {
+                for (var i:uint = 1; i <= count; i++) {
                     stream.position = addressPosition;
 
                     var sprite:Sprite = getSprite(i);
 
-                    if (sprite.isEmpty)
-                    {
+                    if(sprite.isEmpty) {
                         stream.writeUnsignedInt(0); // Write address
-                    }
-                    else
-                    {
+                    } else {
                         sprite.transparent = transparency;
                         sprite.compressedPixels.position = 0;
 
                         stream.writeUnsignedInt(offset); // Write address
                         stream.position = offset;
-                        stream.writeByte(0xFF); // Write red
-                        stream.writeByte(0x00); // Write blue
-                        stream.writeByte(0xFF); // Write green
-                        stream.writeShort(sprite.length); // Write sprite data size
+                        stream.writeByte(0xFF);          // Write red
+                        stream.writeByte(0x00);          // Write blue
+                        stream.writeByte(0xFF);          // Write green
+                        stream.writeShort(sprite.length);  // Write sprite data size
 
-                        if (sprite.length > 0)
-                        {
+                        if (sprite.length > 0) {
                             stream.writeBytes(sprite.compressedPixels, 0, sprite.length);
                         }
 
                         offset = stream.position;
                     }
 
-                    addressPosition += SpriteFileSize.ADDRESS;
+                    addressPosition += 4;
+
+                    if (dispatchProgess && (i % 10) == 0) {
+                        progressEvent.loaded = i;
+                        dispatchEvent(progressEvent);
+                    }
                 }
 
                 stream.close();
                 done = true;
             }
-            catch (error:Error)
+            catch(error:Error)
             {
                 dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, false, error.getStackTrace(), error.errorID));
                 done = false;
@@ -689,7 +516,7 @@ package otlib.sprites
 
                 // Reload all if equal.
                 if (equal)
-                    this.onLoad(file, version, features, true);
+                    this.onLoad(file, version, extended, transparency, true);
             }
             else if (tmpFile.exists)
             {
@@ -704,8 +531,7 @@ package otlib.sprites
 
         public function isEmptySprite(id:uint):Boolean
         {
-            if (_loaded && id <= _spritesCount)
-            {
+            if (_loaded && id <= _spritesCount) {
                 if (_sprites[id] !== undefined)
                     return Sprite(_sprites[id]).isEmpty;
                 else
@@ -722,8 +548,7 @@ package otlib.sprites
             if (event.isDefaultPrevented())
                 return;
 
-            if (_reader)
-            {
+            if (_reader) {
                 _reader.close();
                 _reader = null;
             }
@@ -731,7 +556,8 @@ package otlib.sprites
             _file = null;
             _loaded = false;
             _signature = 0;
-            _currentFeatures = null;
+            _extended = false;
+            _transparency = false;
             _version = null;
             _sprites = null;
             _spritesCount = 0;
@@ -745,8 +571,7 @@ package otlib.sprites
 
         public function invalidate():void
         {
-            if (!_changed)
-            {
+            if (!_changed) {
                 _changed = true;
 
                 if (hasEventListener(StorageEvent.CHANGE))
@@ -754,32 +579,29 @@ package otlib.sprites
             }
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Internal
-        // --------------------------------------
+        //--------------------------------------
 
         otlib_internal function internalAddSprite(pixels:ByteArray, result:ChangeResult = null):ChangeResult
         {
             result = result ? result : new ChangeResult();
 
-            if (pixels.length != SpriteExtent.DEFAULT_DATA_SIZE)
-            {
+            if (pixels.length != SpriteExtent.DEFAULT_DATA_SIZE) {
                 return result.update(null, false, "Parameter pixels has an invalid length.");
             }
 
-            if (this.isFull)
-            {
+            if (this.isFull) {
                 return result.update(null, false, Resources.getString("spritesLimitReached"));
             }
 
             var id:uint = ++_spritesCount;
-            var sprite:Sprite = new Sprite(id, _currentFeatures ? _currentFeatures.transparency : false);
-            if (!sprite.setPixels(pixels))
-            {
+            var sprite:Sprite = new Sprite(id, _transparency);
+            if (!sprite.setPixels(pixels)) {
                 var message:String = Resources.getString(
-                        "failedToAdd",
-                        Resources.getString("sprite"),
-                        id);
+                    "failedToAdd",
+                    Resources.getString("sprite"),
+                    id);
                 return result.update(null, false, message);
             }
 
@@ -800,11 +622,9 @@ package otlib.sprites
 
             var addedList:Array = [];
             var length:uint = sprites.length;
-            for (var i:uint = 0; i < length; i++)
-            {
+            for (var i:uint = 0; i < length; i++) {
                 var added:ChangeResult = internalAddSprite(sprites[i], CHANGE_RESULT_HELPER);
-                if (!added.done)
-                {
+                if (!added.done) {
                     return result.update(addedList, false, added.message);
                 }
                 addedList[i] = added.list[0];
@@ -819,13 +639,12 @@ package otlib.sprites
             if (id == 0)
                 return result.update(null, true);
 
-            var sprite:Sprite = new Sprite(id, _currentFeatures ? _currentFeatures.transparency : false);
-            if (!sprite.setPixels(pixels))
-            {
+            var sprite:Sprite = new Sprite(id, _transparency);
+            if (!sprite.setPixels(pixels)) {
                 var message:String = Resources.getString(
-                        "failedToReplace",
-                        Resources.getString("sprite"),
-                        id);
+                    "failedToReplace",
+                    Resources.getString("sprite"),
+                    id);
                 return result.update(null, false, message);
             }
 
@@ -848,13 +667,11 @@ package otlib.sprites
             var replacedList:Array = [];
             var length:uint = sprites.length;
 
-            for (var i:uint = 0; i < length; i++)
-            {
+            for (var i:uint = 0; i < length; i++) {
                 var id:uint = sprites[i].id;
                 var pixels:ByteArray = sprites[i].pixels;
                 var replaced:ChangeResult = internalReplaceSprite(id, pixels, CHANGE_RESULT_HELPER);
-                if (!replaced.done)
-                {
+                if (!replaced.done) {
                     return result.update(replacedList, false, replaced.message);
                 }
 
@@ -871,15 +688,12 @@ package otlib.sprites
             // Get the removed sprite.
             var removed:Sprite = getSprite(id);
 
-            if (id == _spritesCount && id != 1)
-            {
+            if (id == _spritesCount && id != 1) {
                 delete _sprites[id];
                 _spritesCount--;
-            }
-            else
-            {
+            } else {
                 // Add a blank sprite at index.
-                _sprites[id] = new Sprite(id, _currentFeatures ? _currentFeatures.transparency : false);
+                _sprites[id] = new Sprite(id, _transparency);
             }
 
             var data:SpriteData = SpriteData.createSpriteData(id, removed.getPixels());
@@ -896,14 +710,11 @@ package otlib.sprites
             // Removes last sprite first
             sprites.sort(Array.NUMERIC | Array.DESCENDING);
 
-            for (var i:uint = 0; i < length; i++)
-            {
+            for (var i:uint = 0; i < length; i++) {
                 var id:uint = sprites[i];
-                if (id != 0 && hasSpriteId(id))
-                {
+                if (id != 0 && hasSpriteId(id)) {
                     var removed:ChangeResult = internalRemoveSprite(id, CHANGE_RESULT_HELPER);
-                    if (!removed.done)
-                    {
+                    if (!removed.done) {
                         return result.update(removedList, false, removed.message);
                     }
                     removedList[removedList.length] = removed.list[0];
@@ -912,32 +723,32 @@ package otlib.sprites
             return result.update(removedList, true);
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Private
-        // --------------------------------------
+        //--------------------------------------
 
         private function onLoad(file:File,
-                version:Version,
-                features:ClientFeatures,
-                reloading:Boolean):void
+                                version:Version,
+                                extended:Boolean,
+                                transparency:Boolean,
+                                reloading:Boolean):void
         {
-            if (!file.exists)
-            {
+            if (!file.exists) {
                 Log.error(Resources.getString("fileNotFound", file.nativePath));
                 return;
             }
 
             _file = file;
             _version = version;
-            _currentFeatures = features.clone();
-            _currentFeatures.applyVersionDefaults(version.value);
-            _reader = new SpriteReader(_currentFeatures);
+            _extended = (extended || version.value >= 960);
+            _transparency = transparency;
+            _reader = new SpriteReader(_extended, _transparency);
             _reader.open(file, FileMode.READ);
             _signature = _reader.readSignature();
             _spritesCount = _reader.readSpriteCount();
-            _headerSize = _currentFeatures.extended ? SpriteFileSize.HEADER_U32 : SpriteFileSize.HEADER_U16;
-            _blankSprite = new Sprite(0, _currentFeatures.transparency);
-            _alertSprite = createAlertSprite(_currentFeatures.transparency);
+            _headerSize = _extended ? SpriteFileSize.HEADER_U32 : SpriteFileSize.HEADER_U16;
+            _blankSprite = new Sprite(0, transparency);
+            _alertSprite = createAlertSprite(transparency);
             _sprites = new Dictionary();
             _sprites[0] = _blankSprite;
             _changed = false;
@@ -945,6 +756,7 @@ package otlib.sprites
 
             if (!reloading)
             {
+                dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, ProgressBarID.SPRITES, _spritesCount, _spritesCount));
                 dispatchEvent(new StorageEvent(StorageEvent.LOAD));
                 dispatchEvent(new StorageEvent(StorageEvent.CHANGE));
             }
@@ -954,13 +766,13 @@ package otlib.sprites
         {
             var bitmap:BitmapData = SpriteUtils.createAlertBitmap();
             var sprite:Sprite = new Sprite(uint.MAX_VALUE, transparent);
-            sprite.setPixels(bitmap.getPixels(bitmap.rect));
+            sprite.setPixels( bitmap.getPixels(bitmap.rect) );
             return sprite;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private static const CHANGE_RESULT_HELPER:ChangeResult = new ChangeResult();
     }

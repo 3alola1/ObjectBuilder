@@ -24,44 +24,41 @@ package otlib.things
 {
     import otlib.animation.FrameGroup;
     import otlib.things.FrameGroupType;
-    import otlib.geom.Direction;
 
     /**
      * Writer for versions 7.80 - 8.54
      */
     public class MetadataWriter4 extends MetadataWriter
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function MetadataWriter4()
         {
 
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public Override
-        // --------------------------------------
+        //--------------------------------------
 
         public override function writeProperties(type:ThingType):Boolean
         {
             if (type.category == ThingCategory.ITEM)
                 return false;
 
-            if (type.hasLight)
-            {
+            if (type.hasLight) {
                 writeByte(MetadataFlags4.HAS_LIGHT);
                 writeShort(type.lightLevel);
                 writeShort(type.lightColor);
             }
 
-            if (type.hasOffset)
-            {
+            if (type.hasOffset) {
                 writeByte(MetadataFlags4.HAS_OFFSET);
                 writeShort(type.offsetX);
                 writeShort(type.offsetY);
@@ -69,19 +66,6 @@ package otlib.things
 
             if (type.animateAlways)
                 writeByte(MetadataFlags4.ANIMATE_ALWAYS);
-
-            if (type.hasBones)
-            {
-                writeByte(MetadataFlags4.HAS_BONES);
-                writeShort(type.bonesOffsetX[Direction.NORTH]);
-                writeShort(type.bonesOffsetY[Direction.NORTH]);
-                writeShort(type.bonesOffsetX[Direction.SOUTH]);
-                writeShort(type.bonesOffsetY[Direction.SOUTH]);
-                writeShort(type.bonesOffsetX[Direction.EAST]);
-                writeShort(type.bonesOffsetY[Direction.EAST]);
-                writeShort(type.bonesOffsetX[Direction.WEST]);
-                writeShort(type.bonesOffsetY[Direction.WEST]);
-            }
 
             writeByte(MetadataFlags4.LAST_FLAG);
             return true;
@@ -92,12 +76,10 @@ package otlib.things
             if (type.category != ThingCategory.ITEM)
                 return false;
 
-            if (type.isGround)
-            {
+            if (type.isGround) {
                 writeByte(MetadataFlags4.GROUND);
                 writeShort(type.groundSpeed);
-            }
-            else if (type.isGroundBorder)
+            } else if (type.isGroundBorder)
                 writeByte(MetadataFlags4.GROUND_BORDER);
             else if (type.isOnBottom)
                 writeByte(MetadataFlags4.ON_BOTTOM);
@@ -119,16 +101,14 @@ package otlib.things
             if (type.hasCharges)
                 writeByte(MetadataFlags4.HAS_CHARGES);
 
-            if (type.writable)
-            {
+            if (type.writable) {
                 writeByte(MetadataFlags4.WRITABLE);
-                writeShort(type.maxReadWriteChars);
+                writeShort(type.maxTextLength);
             }
 
-            if (type.writableOnce)
-            {
+            if (type.writableOnce) {
                 writeByte(MetadataFlags4.WRITABLE_ONCE);
-                writeShort(type.maxReadChars);
+                writeShort(type.maxTextLength);
             }
 
             if (type.isFluidContainer)
@@ -164,8 +144,7 @@ package otlib.things
             if (type.rotatable)
                 writeByte(MetadataFlags4.ROTATABLE);
 
-            if (type.hasLight)
-            {
+            if (type.hasLight) {
                 writeByte(MetadataFlags4.HAS_LIGHT);
                 writeShort(type.lightLevel);
                 writeShort(type.lightColor);
@@ -177,15 +156,13 @@ package otlib.things
             if (type.floorChange)
                 writeByte(MetadataFlags4.FLOOR_CHANGE);
 
-            if (type.hasOffset)
-            {
+            if (type.hasOffset) {
                 writeByte(MetadataFlags4.HAS_OFFSET);
                 writeShort(type.offsetX);
                 writeShort(type.offsetY);
             }
 
-            if (type.hasElevation)
-            {
+            if (type.hasElevation) {
                 writeByte(MetadataFlags4.HAS_ELEVATION);
                 writeShort(type.elevation);
             }
@@ -196,14 +173,12 @@ package otlib.things
             if (type.animateAlways)
                 writeByte(MetadataFlags4.ANIMATE_ALWAYS);
 
-            if (type.miniMap)
-            {
+            if (type.miniMap) {
                 writeByte(MetadataFlags4.MINI_MAP);
                 writeShort(type.miniMapColor);
             }
 
-            if (type.isLensHelp)
-            {
+            if (type.isLensHelp) {
                 writeByte(MetadataFlags4.LENS_HELP);
                 writeShort(type.lensHelp);
             }
@@ -214,26 +189,8 @@ package otlib.things
             if (type.ignoreLook)
                 writeByte(MetadataFlags4.IGNORE_LOOK);
 
-            if (type.wrappable)
-                writeByte(MetadataFlags6.WRAPPABLE);
-
-            if (type.unwrappable)
-                writeByte(MetadataFlags6.UNWRAPPABLE);
-
-            if (type.hasBones)
-            {
-                writeByte(MetadataFlags4.HAS_BONES);
-                writeShort(type.bonesOffsetX[Direction.NORTH]);
-                writeShort(type.bonesOffsetY[Direction.NORTH]);
-                writeShort(type.bonesOffsetX[Direction.SOUTH]);
-                writeShort(type.bonesOffsetY[Direction.SOUTH]);
-                writeShort(type.bonesOffsetX[Direction.EAST]);
-                writeShort(type.bonesOffsetY[Direction.EAST]);
-                writeShort(type.bonesOffsetX[Direction.WEST]);
-                writeShort(type.bonesOffsetY[Direction.WEST]);
-            }
-
             writeByte(MetadataFlags4.LAST_FLAG);
+
             return true;
         }
     }

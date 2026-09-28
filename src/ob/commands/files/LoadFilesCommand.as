@@ -27,27 +27,28 @@ package ob.commands.files
     import flash.filesystem.File;
 
     import otlib.core.Version;
-    import otlib.core.ClientFeatures;
 
     public class LoadFilesCommand extends WorkerCommand
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function LoadFilesCommand(datFile:File,
-                sprFile:File,
-                version:Version,
-                serverItemsPath:String,
-                features:ClientFeatures,
-                knownAttributes:Array = null)
+                                         sprFile:File,
+                                         version:Version,
+                                         extended:Boolean,
+                                         transparency:Boolean,
+                                         improvedAnimations:Boolean,
+                                         frameGroups:Boolean)
         {
-            super(datFile ? datFile.nativePath : null,
-                    sprFile.nativePath,
-                    version,
-                    serverItemsPath,
-                    features,
-                    knownAttributes);
+            super(datFile.nativePath,
+                  sprFile.nativePath,
+                  version,
+                  extended,
+                  transparency,
+                  improvedAnimations,
+                  frameGroups);
         }
     }
 }

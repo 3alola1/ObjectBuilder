@@ -42,7 +42,6 @@ package otlib.core
         function getByValue(value:uint):Vector.<Version>;
         function getByValueString(value:String):Version;
         function getBySignatures(datSignature:uint, sprSignature:uint):Version;
-        function getBySprSignature(sprSignature:uint):Version;
         function getByOtbVersion(otb:uint):Vector.<Version>;
         function unload():void;
     }

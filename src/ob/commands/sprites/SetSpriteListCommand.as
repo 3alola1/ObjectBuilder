@@ -28,13 +28,13 @@ package ob.commands.sprites
 
     public class SetSpriteListCommand extends WorkerCommand
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        public function SetSpriteListCommand(selectedIds:Vector.<uint>, sprites:Vector.<SpriteData>, forceUpdate:Boolean = false)
+        public function SetSpriteListCommand(selectedIds:Vector.<uint>, sprites:Vector.<SpriteData>)
         {
-            super(selectedIds, sprites, forceUpdate);
+            super(selectedIds, sprites);
         }
     }
 }

@@ -25,6 +25,7 @@ package otlib.things
     import flash.display.BitmapData;
     import flash.events.EventDispatcher;
     import flash.utils.Dictionary;
+    import flash.utils.describeType;
 
     import mx.events.PropertyChangeEvent;
     import mx.resources.IResourceManager;
@@ -39,17 +40,15 @@ package otlib.things
     import otlib.things.FrameGroupType;
     import ob.settings.ObjectBuilderSettings;
 
-    import otlib.geom.Direction;
-
     [Event(name="propertyChange", type="mx.events.PropertyChangeEvent")]
 
     [ResourceBundle("strings")]
 
     public class BindableThingType extends EventDispatcher
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         [Bindable]
         public var id:uint;
@@ -94,10 +93,7 @@ package otlib.things
         public var writableOnce:Boolean;
 
         [Bindable]
-        public var maxReadWriteChars:uint;
-
-        [Bindable]
-        public var maxReadChars:uint;
+        public var maxTextLength:uint;
 
         [Bindable]
         public var isFluidContainer:Boolean;
@@ -137,15 +133,6 @@ package otlib.things
 
         [Bindable]
         public var hasOffset:Boolean;
-
-        [Bindable]
-        public var hasBones:Boolean;
-
-        [Bindable]
-        public var bonesOffsetX:Array;
-
-        [Bindable]
-        public var bonesOffsetY:Array;
 
         [Bindable]
         public var offsetX:int;
@@ -213,10 +200,6 @@ package otlib.things
         [Bindable]
         public var marketName:String;
 
-        /** Used by Find window to search by name in both DAT and items.xml */
-        [Bindable]
-        public var searchName:String;
-
         [Bindable]
         public var marketCategory:uint;
 
@@ -250,54 +233,50 @@ package otlib.things
         [Bindable]
         public var usable:Boolean;
 
-        [Bindable]
-        public var groups:uint;
+        public var sprites:Dictionary;
 
-        [Bindable]
-        public var frameGroups:Array;
+		[Bindable]
+		public var groups:uint;
+
+		[Bindable]
+		public var frameGroups:Array;
 
         [Bindable]
         public var settings:ObjectBuilderSettings;
 
-        public var sprites:Dictionary;
-
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function BindableThingType()
         {
-            this.frameGroups = [];
-            this.frameGroups[FrameGroupType.DEFAULT] = new FrameGroup();
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
-        public function getFrameGroup(groupType:uint):FrameGroup
-        {
-            return frameGroups[groupType];
-        }
+		public function getFrameGroup(groupType:uint):FrameGroup
+		{
+			return frameGroups[groupType];
+		}
 
-        public function setFrameGroup(groupType:uint, frameGroup:FrameGroup):void
-        {
-            frameGroups[groupType] = frameGroup;
-        }
+		public function setFrameGroup(groupType:uint, frameGroup:FrameGroup):void
+		{
+			frameGroups[groupType] = frameGroup
+		}
 
         public function setSprite(groupType:uint, index:uint, sprite:SpriteData):void
         {
-            var frameGroup:FrameGroup = getFrameGroup(groupType);
-            if (!frameGroup)
-                return;
+			var frameGroup:FrameGroup = getFrameGroup(groupType);
 
             var oldValue:uint = frameGroup.spriteIndex[index];
-            frameGroup.spriteIndex[index] = sprite.id;
-            this.sprites[groupType][index] = sprite;
+			frameGroup.spriteIndex[index] = sprite.id;
+			this.sprites[groupType][index] = sprite;
 
             var event:PropertyChangeEvent = new PropertyChangeEvent(PropertyChangeEvent.PROPERTY_CHANGE);
             event.property = "spriteIndex";
@@ -314,43 +293,42 @@ package otlib.things
             return null;
         }
 
-        // WARNING: This method uses explicit property assignments for performance reasons (avoiding describeType).
-        // If you add a new property to ThingType/BindableThingType, you MUST add it here manually.
         public function reset():void
         {
-            id = 0;
-            category = null;
-            sprites = null;
-            groups = 0;
-            frameGroups = null;
-            settings = null;
+            var description:XMLList = describeType(this)..accessor;
+            for each (var property:XML in description) {
 
-            // Reset to defaults by copying from a fresh ThingType instance
-            this.copyPropertiesFrom(new ThingType());
-        }
+                var name:String = property.@name;
+                var type:String = property.@type;
 
-        public function copyPropertiesFrom(source:*):void
-        {
-            ThingType.copyProperties(source, this);
+                if (type == "Boolean")
+                    this[name] = false;
+                else if (type == "uint" || type == "int")
+                    this[name] = 0;
+                else
+                    this[name] = null;
+            }
         }
 
         public function copyFrom(data:ThingData):Boolean
         {
-            if (!data)
-                return false;
+            if (!data) return false;
 
             var thing:ThingType = data.thing;
+            var description:XMLList = describeType(thing)..variable;
 
-            id = thing.id;
-            category = thing.category;
-            this.copyPropertiesFrom(thing);
+            for each (var property:XML in description) {
+                var name:String = property.@name;
+                if (this.hasOwnProperty(name))
+                    this[name] = thing[name];
+            }
 
-            this.frameGroups = [];
-            this.sprites = new Dictionary();
-            for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
-            {
-                var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
-                if (!frameGroup)
+			this.frameGroups = [];
+			this.sprites = new Dictionary();
+			for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
+			{
+				var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
+				if(!frameGroup)
                     continue;
 
                 this.frameGroups[groupType] = frameGroup.clone();
@@ -358,26 +336,24 @@ package otlib.things
                     this.sprites[groupType] = data.sprites[groupType].concat();
 
                 groups = groupType + 1;
-            }
+			}
 
             return true;
         }
 
         public function copyToThingData(data:ThingData, groups:uint):Boolean
         {
-            if (!copyToThingType(data.thing, groups))
-                return false;
+            if (!copyToThingType(data.thing, groups)) return false;
 
-            if (this.sprites)
-            {
+            if (this.sprites) {
                 var sprites:Dictionary = new Dictionary();
                 for (var groupType:uint = FrameGroupType.DEFAULT; groupType < groups; groupType++)
                 {
-                    if (!this.getFrameGroup(groupType))
+                    if(!this.getFrameGroup(groupType))
                         continue;
 
                     var _sprites:Vector.<SpriteData> = this.sprites[groupType];
-                    if (_sprites && _sprites.length > 0)
+                    if(_sprites && _sprites.length > 0)
                     {
                         sprites[groupType] = new Vector.<SpriteData>(_sprites.length, true);
 
@@ -396,19 +372,22 @@ package otlib.things
             if (!thing)
                 return false;
 
-            thing.id = id;
-            thing.category = category;
-            thing.copyPropertiesFrom(this);
+            var description:XMLList = describeType(thing)..variable;
+            for each (var property:XML in description) {
+                var name:String = property.@name;
+                if (this.hasOwnProperty(name))
+                    thing[name] = this[name];
+            }
 
             thing.frameGroups = [];
-            for (var groupType:uint = FrameGroupType.DEFAULT; groupType < groups; groupType++)
-            {
-                var frameGroup:FrameGroup = this.getFrameGroup(groupType);
-                if (!frameGroup)
+			for (var groupType:uint = FrameGroupType.DEFAULT; groupType < groups; groupType++)
+			{
+				var frameGroup:FrameGroup = this.getFrameGroup(groupType);
+				if(!frameGroup)
                     continue;
 
                 thing.frameGroups[groupType] = frameGroup.clone();
-            }
+			}
 
             return true;
         }
@@ -420,12 +399,10 @@ package otlib.things
             sprites[frameGroup.type].length = spriteCount;
             frameGroup.isAnimation = (frameGroup.frames > 1);
 
-            if (frameGroup.isAnimation)
-            {
+            if (frameGroup.isAnimation) {
                 var duration:uint = settings.getDefaultDuration(this.category);
                 var frameDurations:Vector.<FrameDuration> = new Vector.<FrameDuration>(frameGroup.frames, true);
-                for (var i:uint = 0; i < frameGroup.frames; i++)
-                {
+                for (var i:uint = 0; i < frameGroup.frames; i++) {
                     if (frameGroup.frameDurations && i < frameGroup.frameDurations.length)
                         frameDurations[i] = frameGroup.frameDurations[i];
                     else
@@ -447,23 +424,23 @@ package otlib.things
             var sprites:Dictionary = new Dictionary();
             for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
             {
-                var group:FrameGroup = this.getFrameGroup(groupType);
-                if (!group)
-                    continue;
+				var group:FrameGroup = this.getFrameGroup(groupType);
+				if(!group)
+					continue;
 
                 var _sprites:Vector.<SpriteData> = this.sprites[groupType];
                 sprites[groupType] = new Vector.<SpriteData>(_sprites.length, true);
 
                 for (var i:uint = 0; i < _sprites.length; i++)
-                    sprites[groupType][i] = _sprites[i] || SpriteData.createSpriteData();
+					sprites[groupType][i] = _sprites[i] || SpriteData.createSpriteData();
             }
 
             return ThingData.create(OBDVersions.OBD_VERSION_3, version, thing, sprites);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private static const PROPERTY_LABEL:Dictionary = new Dictionary();
 
@@ -490,8 +467,7 @@ package otlib.things
             PROPERTY_LABEL["multiUse"] = resource.getString("strings", "multiUse");
             PROPERTY_LABEL["writable"] = resource.getString("strings", "writable");
             PROPERTY_LABEL["writableOnce"] = resource.getString("strings", "writableOnce");
-            PROPERTY_LABEL["maxReadWriteChars"] = resource.getString("strings", "maxLength");
-            PROPERTY_LABEL["maxReadChars"] = resource.getString("strings", "maxLength");
+            PROPERTY_LABEL["maxTextLength"] = resource.getString("strings", "maxLength");
             PROPERTY_LABEL["isFluidContainer"] = resource.getString("strings", "fluidContainer");
             PROPERTY_LABEL["isFluid"] = resource.getString("strings", "fluid");
             PROPERTY_LABEL["isUnpassable"] = resource.getString("strings", "unpassable");
@@ -507,9 +483,6 @@ package otlib.things
             PROPERTY_LABEL["hasOffset"] = resource.getString("strings", "hasOffset");
             PROPERTY_LABEL["offsetX"] = resource.getString("strings", "offsetX");
             PROPERTY_LABEL["offsetY"] = resource.getString("strings", "offsetY");
-            PROPERTY_LABEL["hasBones"] = resource.getString("strings", "hasBones");
-            PROPERTY_LABEL["bonesOffsetX"] = resource.getString("strings", "offsetX");
-            PROPERTY_LABEL["bonesOffsetY"] = resource.getString("strings", "offsetY");
             PROPERTY_LABEL["dontHide"] = resource.getString("strings", "dontHide");
             PROPERTY_LABEL["isTranslucent"] = resource.getString("strings", "translucent");
             PROPERTY_LABEL["hasLight"] = resource.getString("strings", "hasLight");
@@ -555,8 +528,7 @@ package otlib.things
 
         public static function toLabel(property:String):String
         {
-            if (!isNullOrEmpty(property) && PROPERTY_LABEL[property] !== undefined)
-            {
+            if (!isNullOrEmpty(property) && PROPERTY_LABEL[property] !== undefined) {
                 return PROPERTY_LABEL[property];
             }
             return "";

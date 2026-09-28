@@ -29,9 +29,6 @@ package otlib.components
 
     import mx.core.ClassFactory;
 
-    import spark.layouts.TileLayout;
-
-    import otlib.components.renders.SpriteGridRenderer;
     import otlib.components.renders.SpriteListRenderer;
     import otlib.core.otlib_internal;
     import otlib.events.SpriteListEvent;
@@ -42,60 +39,17 @@ package otlib.components
     [Event(name="fill", type="otlib.events.SpriteListEvent")]
     [Event(name="replace", type="otlib.events.SpriteListEvent")]
     [Event(name="export", type="otlib.events.SpriteListEvent")]
-    [Event(name="exportAll", type="otlib.events.SpriteListEvent")]
     [Event(name="remove", type="otlib.events.SpriteListEvent")]
 
     public class SpriteList extends ListBase
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        private var _iconSize:uint = SpriteGridRenderer.DEFAULT_ICON_SIZE;
-
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
-
-        public function get iconSize():uint
-        {
-            return _iconSize;
-        }
-
-        public function set iconSize(value:uint):void
-        {
-            if (value < SpriteGridRenderer.MIN_ICON_SIZE) value = SpriteGridRenderer.MIN_ICON_SIZE;
-            _iconSize = value;
-
-            // Pooled renderers (off-screen, recycled) read this on next set data()
-            SpriteGridRenderer.sharedIconSize = value;
-
-            if (this.itemRenderer is ClassFactory)
-            {
-                var factory:ClassFactory = ClassFactory(this.itemRenderer);
-                if (!factory.properties) factory.properties = {};
-                factory.properties.iconSize = value;
-            }
-
-            if (this.dataGroup)
-            {
-                if (this.dataGroup.layout is TileLayout)
-                {
-                    var tl:TileLayout = TileLayout(this.dataGroup.layout);
-                    tl.columnWidth = value + SpriteGridRenderer.OUTER_WIDTH_PADDING;
-                    tl.rowHeight = value + SpriteGridRenderer.OUTER_HEIGHT_PADDING;
-                }
-
-                var n:int = this.dataGroup.numElements;
-                for (var i:int = 0; i < n; i++)
-                {
-                    var r:Object = this.dataGroup.getElementAt(i);
-                    if (r && "iconSize" in r)
-                        r.iconSize = value;
-                }
-                this.dataGroup.invalidateDisplayList();
-            }
-        }
+        //--------------------------------------
 
         public function get selectedSprite():SpriteData
         {
@@ -113,11 +67,9 @@ package otlib.components
         {
             var result:Vector.<SpriteData> = new Vector.<SpriteData>();
 
-            if (selectedIndices)
-            {
+            if (selectedIndices) {
                 var length:uint = selectedIndices.length;
-                for (var i:uint = 0; i < length; i++)
-                {
+                for (var i:uint = 0; i < length; i++) {
                     result[i] = dataProvider.getItemAt(selectedIndices[i]) as SpriteData;
                 }
             }
@@ -126,52 +78,40 @@ package otlib.components
 
         public function set selectedSprites(value:Vector.<SpriteData>):void
         {
-            if (value)
-            {
+            if (value) {
                 var list:Vector.<Object> = new Vector.<Object>();
                 var length:uint = value.length;
-                for (var i:uint = 0; i < length; i++)
-                {
+                for (var i:uint = 0; i < length; i++) {
                     list[i] = value[i];
                 }
                 selectedItems = list;
             }
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function SpriteList()
         {
             itemRenderer = new ClassFactory(SpriteListRenderer);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Internal
-        // --------------------------------------
+        //--------------------------------------
 
         otlib_internal function onContextMenuSelect(index:int, type:String):void
         {
-            if (index != -1 && dataProvider)
-            {
-                // Export All doesn't require a sprite selection
-                if (type == SpriteListEvent.EXPORT_ALL)
-                {
-                    dispatchEvent(new SpriteListEvent(SpriteListEvent.EXPORT_ALL));
-                    return;
-                }
-
+            if (index != -1 && dataProvider) {
                 var spriteData:SpriteData = dataProvider.getItemAt(index) as SpriteData;
                 var event:Event;
-                if (spriteData)
-                {
-                    switch (type)
-                    {
+                if (spriteData) {
+                    switch(type) {
                         case Event.COPY:
                             event = new Event(Event.COPY);
                             break;
@@ -200,42 +140,35 @@ package otlib.components
 
         otlib_internal function onContextMenuDisplaying(index:int, menu:ContextMenu):void
         {
-            if (multipleSelected)
-            {
+            if (multipleSelected) {
                 menu.items[0].enabled = false; // Copy
                 menu.items[1].enabled = false; // Paste
-            }
-            else
-            {
+            } else {
                 setSelectedIndex(index, true);
             }
 
-            if (hasEventListener(SpriteListEvent.DISPLAYING_CONTEXT_MENU))
-            {
+            if (hasEventListener(SpriteListEvent.DISPLAYING_CONTEXT_MENU)) {
                 dispatchEvent(new SpriteListEvent(SpriteListEvent.DISPLAYING_CONTEXT_MENU));
             }
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Event Handlers
-        // --------------------------------------
+        //--------------------------------------
 
         override protected function keyDownHandler(event:KeyboardEvent):void
         {
             super.keyDownHandler(event);
 
-            switch (event.keyCode)
-            {
+            switch(event.keyCode) {
                 case Keyboard.INSERT:
                     dispatchEvent(new SpriteListEvent(SpriteListEvent.FILL));
                     break;
                 case Keyboard.C:
-                    if (event.ctrlKey)
-                        dispatchEvent(new Event(Event.COPY));
+                    if (event.ctrlKey) dispatchEvent(new Event(Event.COPY));
                     break;
                 case Keyboard.V:
-                    if (event.ctrlKey)
-                        dispatchEvent(new Event(Event.PASTE));
+                    if (event.ctrlKey) dispatchEvent(new Event(Event.PASTE));
                     break;
                 case Keyboard.DELETE:
                     dispatchEvent(new SpriteListEvent(SpriteListEvent.REMOVE));

@@ -28,9 +28,9 @@ package otlib.events
 
     public class ThingEditorEvent extends Event
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public var data:ThingData;
         public var sprite:uint;
@@ -38,16 +38,16 @@ package otlib.events
         public var oldValue:Object;
         public var newValue:Object;
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function ThingEditorEvent(type:String,
-                data:ThingData,
-                sprite:uint = 0,
-                property:Object = null,
-                oldValue:Object = null,
-                newValue:Object = null)
+                                         data:ThingData,
+                                         sprite:uint = 0,
+                                         property:Object = null,
+                                         oldValue:Object = null,
+                                         newValue:Object = null)
         {
             super(type);
 
@@ -58,37 +58,30 @@ package otlib.events
             this.newValue = newValue;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Override Public
-        // --------------------------------------
+        //--------------------------------------
 
         override public function clone():Event
         {
             return new ThingEditorEvent(this.type,
-                    this.data,
-                    this.sprite,
-                    this.property,
-                    this.oldValue,
-                    this.newValue);
+                this.data,
+                this.sprite,
+                this.property,
+                this.oldValue,
+                this.newValue);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // STATIC
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public static const THING_CHANGE:String = "thingChange";
         public static const THING_PROPERTY_CHANGE:String = "thingPropertyChange";
         public static const SPRITE_DOUBLE_CLICK:String = "spriteDoubleClick";
-
-        // Merged from FrameSpriteGroupEvent
-        public static const CLEAR_SPRITE:String = "clearSprite";
-        public static const COPY_FRAME:String = "copyFrame";
-        public static const PASTE_FRAME:String = "pasteFrame";
-        public static const CLEAR_FRAME:String = "clearFrame";
-        public static const REPLACE_FROM_PNG:String = "replaceFromPng";
     }
 }

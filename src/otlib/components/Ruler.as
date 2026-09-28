@@ -29,30 +29,26 @@ package otlib.components
 
     import mx.core.FlexShape;
     import mx.core.UIComponent;
-
-    import otlib.core.SpriteDimension;
     import otlib.utils.SpriteExtent;
+    import otlib.core.SpriteDimension;
 
     [Style(name="lineColor", inherit="no", type="uint", format="Color")]
 
     public class Ruler extends UIComponent
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var m_mouseLine:FlexShape;
         private var m_zoom:Number = 1.0;
         private var m_point:Point;
 
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get zoom():Number
-        {
-            return m_zoom;
-        }
+        public function get zoom():Number { return m_zoom; }
         public function set zoom(value:Number):void
         {
             if (m_zoom != value)
@@ -69,9 +65,9 @@ package otlib.components
             SpriteExtent.DEFAULT_DATA_SIZE = value.dataSize;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function Ruler()
         {
@@ -82,9 +78,9 @@ package otlib.components
             this.addEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         override protected function createChildren():void
         {
@@ -94,9 +90,9 @@ package otlib.components
             addChild(m_mouseLine);
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Override Protected
-        // --------------------------------------
+        //--------------------------------------
 
         override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
         {
@@ -205,9 +201,9 @@ package otlib.components
             graphics.endFill();
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Event Handlers
-        // --------------------------------------
+        //--------------------------------------
 
         protected function addedToStageHandler(event:Event):void
         {
@@ -224,8 +220,7 @@ package otlib.components
 
         protected function mouseMoveHandler(event:MouseEvent):void
         {
-            if (!m_mouseLine)
-                return;
+            if (!m_mouseLine) return;
 
             m_point.setTo(event.stageX, event.stageY);
             var point:Point = globalToLocal(m_point);

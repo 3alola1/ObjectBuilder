@@ -32,90 +32,50 @@ package otlib.utils
 
     public class ThingListItem implements IListObject
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public var thing:ThingType;
         public var frameGroup:FrameGroup;
         public var pixels:ByteArray;
 
-        /** Server ID from items.otb (if loaded), 0 if not available */
-        public var serverId:uint;
-
-        /** Cached cropped bitmap for grid renderer (cropped to non-transparent bounds) */
-        public var croppedBitmap:BitmapData;
-
         private var _bitmap:BitmapData;
 
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get id():uint
-        {
-            return thing ? thing.id : 0;
-        }
+        public function get id():uint { return thing ? thing.id : 0; }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function ThingListItem()
         {
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function getBitmap(backgroundColor:uint = 0x00000000):BitmapData
         {
-            if (pixels && thing && frameGroup && !_bitmap)
-            {
+            if (pixels && thing && frameGroup && !_bitmap) {
                 pixels.position = 0;
                 _bitmap = new BitmapData(Math.max(SpriteExtent.DEFAULT_SIZE, frameGroup.width * SpriteExtent.DEFAULT_SIZE), Math.max(SpriteExtent.DEFAULT_SIZE, frameGroup.height * SpriteExtent.DEFAULT_SIZE), true, backgroundColor);
                 if (frameGroup.width != 0 &&
-                        frameGroup.height != 0 &&
-                        pixels.length == (_bitmap.width * _bitmap.height * 4))
-                {
+                    frameGroup.height != 0 &&
+                    pixels.length == (_bitmap.width * _bitmap.height * 4)) {
                     _bitmap.setPixels(_bitmap.rect, pixels);
                 }
-
-                // Clear raw pixels to save memory
-                pixels.clear();
-                pixels = null;
             }
             return _bitmap;
-        }
-
-        /**
-         * Disposes all resources held by this item.
-         * Call this when the item is removed from the list to prevent memory leaks.
-         */
-        public function dispose():void
-        {
-            if (_bitmap)
-            {
-                _bitmap.dispose();
-                _bitmap = null;
-            }
-            if (croppedBitmap)
-            {
-                croppedBitmap.dispose();
-                croppedBitmap = null;
-            }
-            if (pixels)
-            {
-                pixels.clear();
-                pixels = null;
-            }
-            thing = null;
-            frameGroup = null;
         }
     }
 }

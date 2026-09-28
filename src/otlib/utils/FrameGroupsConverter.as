@@ -37,15 +37,15 @@ package otlib.utils
     import otlib.sprites.SpriteStorage;
     import otlib.things.ThingType;
     import otlib.things.ThingTypeStorage;
-    import otlib.animation.FrameGroup;
-    import otlib.things.FrameGroupType;
-    import otlib.animation.FrameDuration;
-    import otlib.things.ThingData;
-    import otlib.things.ThingCategory;
-    import otlib.sprites.SpriteData;
-    import flash.utils.ByteArray;
-    import mx.logging.Log;
-    import otlib.obd.OBDVersions;
+	import otlib.animation.FrameGroup;
+	import otlib.things.FrameGroupType;
+	import otlib.animation.FrameDuration;
+	import otlib.things.ThingData;
+	import otlib.things.ThingCategory;
+	import otlib.sprites.SpriteData;
+	import flash.utils.ByteArray;
+	import mx.logging.Log;
+	import otlib.obd.OBDVersions;
 
     use namespace otlib_internal;
 
@@ -54,9 +54,9 @@ package otlib.utils
 
     public class FrameGroupsConverter extends EventDispatcher
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var m_objects:ThingTypeStorage;
         private var m_sprites:SpriteStorage;
@@ -67,9 +67,10 @@ package otlib.utils
         private var m_improvedAnimations:Boolean;
         private var m_defaultDuration:uint;
 
-        // --------------------------------------------------------------------------
+
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function FrameGroupsConverter(objects:ThingTypeStorage, sprites:SpriteStorage, frameGroups:Boolean, removeMounts:Boolean, clientVersion:uint, improvedAnimations:Boolean, duration:uint)
         {
@@ -82,21 +83,20 @@ package otlib.utils
             m_removeMounts = removeMounts;
             m_clientVersion = clientVersion;
             m_improvedAnimations = improvedAnimations;
-            m_defaultDuration = duration;
+            m_defaultDuration = duration
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function start():void
         {
-            if (m_finished)
-                return;
+            if (m_finished) return;
 
             var step:uint = 0;
             var steps:uint;
@@ -106,7 +106,7 @@ package otlib.utils
             for each (thing in m_objects.outfits)
             {
                 var thingData:ThingData = getOutfitData(thing.id);
-                if (thingData)
+                if(thingData)
                 {
                     dispatchProgress(step++, steps, Resources.getString("convertOutfits"));
                     var frameGroups:uint = ThingUtils.REMOVE_FRAME_GROUPS;
@@ -123,45 +123,42 @@ package otlib.utils
 
         private function getOutfitData(id:uint):ThingData
         {
-            if (!ThingCategory.getCategory(ThingCategory.OUTFIT))
-            {
+            if (!ThingCategory.getCategory(ThingCategory.OUTFIT)) {
                 throw new Error(Resources.getString("invalidCategory"));
             }
 
             var thing:ThingType = m_objects.getThingType(id, ThingCategory.OUTFIT);
-            if (!thing)
-            {
+            if (!thing) {
                 throw new Error(Resources.getString(
-                            "thingNotFound",
-                            Resources.getString(ThingCategory.OUTFIT),
-                            id));
+                    "thingNotFound",
+                    Resources.getString(ThingCategory.OUTFIT),
+                    id));
             }
 
-            var sprites:Dictionary = new Dictionary();
-            for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
-            {
-                var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
-                if (!frameGroup)
-                    continue;
+			var sprites:Dictionary = new Dictionary();
+			for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
+			{
+				var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
+				if(!frameGroup)
+					continue;
 
-                sprites[groupType] = new Vector.<SpriteData>();
+				sprites[groupType] = new Vector.<SpriteData>();
 
-                var spriteIndex:Vector.<uint> = frameGroup.spriteIndex;
-                var length:uint = spriteIndex.length;
+				var spriteIndex:Vector.<uint> = frameGroup.spriteIndex;
+				var length:uint = spriteIndex.length;
 
-                for (var i:uint = 0; i < length; i++)
-                {
-                    var spriteId:uint = spriteIndex[i];
-                    var pixels:ByteArray = m_sprites.getPixels(spriteId);
-                    if (!pixels)
-                        pixels = m_sprites.alertSprite.getPixels();
+				for (var i:uint = 0; i < length; i++) {
+					var spriteId:uint = spriteIndex[i];
+					var pixels:ByteArray = m_sprites.getPixels(spriteId);
+					if (!pixels)
+						pixels = m_sprites.alertSprite.getPixels();
 
-                    var spriteData:SpriteData = new SpriteData();
-                    spriteData.id = spriteId;
-                    spriteData.pixels = pixels;
-                    sprites[groupType][i] = spriteData;
-                }
-            }
+					var spriteData:SpriteData = new SpriteData();
+					spriteData.id = spriteId;
+					spriteData.pixels = pixels;
+					sprites[groupType][i] = spriteData;
+				}
+			}
 
             return ThingData.create(OBDVersions.OBD_VERSION_2, m_clientVersion, thing, sprites);
         }

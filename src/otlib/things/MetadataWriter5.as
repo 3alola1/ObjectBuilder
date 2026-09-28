@@ -22,44 +22,40 @@
 
 package otlib.things
 {
-    import otlib.geom.Direction;
-
     /**
      * Writer for versions 8.60 - 9.86
      */
     public class MetadataWriter5 extends MetadataWriter
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function MetadataWriter5()
         {
 
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public Override
-        // --------------------------------------
+        //--------------------------------------
 
         public override function writeProperties(type:ThingType):Boolean
         {
             if (type.category == ThingCategory.ITEM)
                 return false;
 
-            if (type.hasLight)
-            {
+            if (type.hasLight) {
                 writeByte(MetadataFlags5.HAS_LIGHT);
                 writeShort(type.lightLevel);
                 writeShort(type.lightColor);
             }
 
-            if (type.hasOffset)
-            {
+            if (type.hasOffset) {
                 writeByte(MetadataFlags5.HAS_OFFSET);
                 writeShort(type.offsetX);
                 writeShort(type.offsetY);
@@ -67,19 +63,6 @@ package otlib.things
 
             if (type.animateAlways)
                 writeByte(MetadataFlags5.ANIMATE_ALWAYS);
-
-            if (type.hasBones)
-            {
-                writeByte(MetadataFlags4.HAS_BONES);
-                writeShort(type.bonesOffsetX[Direction.NORTH]);
-                writeShort(type.bonesOffsetY[Direction.NORTH]);
-                writeShort(type.bonesOffsetX[Direction.SOUTH]);
-                writeShort(type.bonesOffsetY[Direction.SOUTH]);
-                writeShort(type.bonesOffsetX[Direction.EAST]);
-                writeShort(type.bonesOffsetY[Direction.EAST]);
-                writeShort(type.bonesOffsetX[Direction.WEST]);
-                writeShort(type.bonesOffsetY[Direction.WEST]);
-            }
 
             writeByte(MetadataFlags5.LAST_FLAG);
             return true;
@@ -90,12 +73,10 @@ package otlib.things
             if (type.category != ThingCategory.ITEM)
                 return false;
 
-            if (type.isGround)
-            {
+            if (type.isGround) {
                 writeByte(MetadataFlags5.GROUND);
                 writeShort(type.groundSpeed);
-            }
-            else if (type.isGroundBorder)
+            } else if (type.isGroundBorder)
                 writeByte(MetadataFlags5.GROUND_BORDER);
             else if (type.isOnBottom)
                 writeByte(MetadataFlags5.ON_BOTTOM);
@@ -114,16 +95,14 @@ package otlib.things
             if (type.multiUse)
                 writeByte(MetadataFlags5.MULTI_USE);
 
-            if (type.writable)
-            {
+            if (type.writable) {
                 writeByte(MetadataFlags5.WRITABLE);
-                writeShort(type.maxReadWriteChars);
+                writeShort(type.maxTextLength);
             }
 
-            if (type.writableOnce)
-            {
+            if (type.writableOnce) {
                 writeByte(MetadataFlags5.WRITABLE_ONCE);
-                writeShort(type.maxReadChars);
+                writeShort(type.maxTextLength);
             }
 
             if (type.isFluidContainer)
@@ -159,8 +138,7 @@ package otlib.things
             if (type.rotatable)
                 writeByte(MetadataFlags5.ROTATABLE);
 
-            if (type.hasLight)
-            {
+            if (type.hasLight) {
                 writeByte(MetadataFlags5.HAS_LIGHT);
                 writeShort(type.lightLevel);
                 writeShort(type.lightColor);
@@ -172,15 +150,13 @@ package otlib.things
             if (type.isTranslucent)
                 writeByte(MetadataFlags5.TRANSLUCENT);
 
-            if (type.hasOffset)
-            {
+            if (type.hasOffset) {
                 writeByte(MetadataFlags5.HAS_OFFSET);
                 writeShort(type.offsetX);
                 writeShort(type.offsetY);
             }
 
-            if (type.hasElevation)
-            {
+            if (type.hasElevation) {
                 writeByte(MetadataFlags5.HAS_ELEVATION);
                 writeShort(type.elevation);
             }
@@ -191,14 +167,12 @@ package otlib.things
             if (type.animateAlways)
                 writeByte(MetadataFlags5.ANIMATE_ALWAYS);
 
-            if (type.miniMap)
-            {
+            if (type.miniMap) {
                 writeByte(MetadataFlags5.MINI_MAP);
                 writeShort(type.miniMapColor);
             }
 
-            if (type.isLensHelp)
-            {
+            if (type.isLensHelp) {
                 writeByte(MetadataFlags5.LENS_HELP);
                 writeShort(type.lensHelp);
             }
@@ -209,14 +183,12 @@ package otlib.things
             if (type.ignoreLook)
                 writeByte(MetadataFlags5.IGNORE_LOOK);
 
-            if (type.cloth)
-            {
+            if (type.cloth) {
                 writeByte(MetadataFlags5.CLOTH);
                 writeShort(type.clothSlot);
             }
 
-            if (type.isMarketItem)
-            {
+            if (type.isMarketItem) {
                 writeByte(MetadataFlags5.MARKET_ITEM);
                 writeShort(type.marketCategory);
                 writeShort(type.marketTradeAs);
@@ -227,20 +199,8 @@ package otlib.things
                 writeShort(type.marketRestrictLevel);
             }
 
-            if (type.hasBones)
-            {
-                writeByte(MetadataFlags5.HAS_BONES);
-                writeShort(type.bonesOffsetX[Direction.NORTH]);
-                writeShort(type.bonesOffsetY[Direction.NORTH]);
-                writeShort(type.bonesOffsetX[Direction.SOUTH]);
-                writeShort(type.bonesOffsetY[Direction.SOUTH]);
-                writeShort(type.bonesOffsetX[Direction.EAST]);
-                writeShort(type.bonesOffsetY[Direction.EAST]);
-                writeShort(type.bonesOffsetX[Direction.WEST]);
-                writeShort(type.bonesOffsetY[Direction.WEST]);
-            }
-
             writeByte(MetadataFlags5.LAST_FLAG);
+
             return true;
         }
     }

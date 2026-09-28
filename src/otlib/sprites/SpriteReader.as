@@ -24,38 +24,37 @@ package otlib.sprites
 {
     import flash.filesystem.FileStream;
     import flash.utils.Endian;
-    import otlib.core.ClientFeatures;
 
     public class SpriteReader extends FileStream implements ISpriteReader
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var m_extended:Boolean;
         private var m_transparency:Boolean;
         private var m_headerSize:uint;
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        public function SpriteReader(features:ClientFeatures)
+        public function SpriteReader(extended:Boolean, transparency:Boolean)
         {
-            m_extended = features ? features.extended : false;
-            m_transparency = features ? features.transparency : false;
-            m_headerSize = m_extended ? SpriteFileSize.HEADER_U32 : SpriteFileSize.HEADER_U16;
+            m_extended = extended;
+            m_transparency = transparency;
+            m_headerSize = extended ? SpriteFileSize.HEADER_U32 : SpriteFileSize.HEADER_U16;
 
             endian = Endian.LITTLE_ENDIAN;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function readSignature():uint
         {
@@ -73,7 +72,7 @@ package otlib.sprites
         {
             position = ((id - 1) * SpriteFileSize.ADDRESS) + m_headerSize;
 
-            var address:uint = readUnsignedInt();
+            var address:uint  = readUnsignedInt();
             if (address == 0)
                 return null;
 
@@ -86,9 +85,7 @@ package otlib.sprites
             var length:uint = readUnsignedShort();
 
             if (length != 0)
-            {
                 readBytes(sprite.compressedPixels, 0, length);
-            }
 
             return sprite;
         }

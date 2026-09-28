@@ -37,8 +37,8 @@ package otlib.utils
     import otlib.sprites.SpriteStorage;
     import otlib.things.ThingType;
     import otlib.things.ThingTypeStorage;
-    import otlib.animation.FrameGroup;
-    import otlib.things.FrameGroupType;
+	import otlib.animation.FrameGroup;
+	import otlib.things.FrameGroupType;
 
     use namespace otlib_internal;
 
@@ -47,9 +47,9 @@ package otlib.utils
 
     public class SpritesOptimizer extends EventDispatcher
     {
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // PROPERTIES
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         private var m_objects:ThingTypeStorage;
         private var m_sprites:SpriteStorage;
@@ -61,26 +61,17 @@ package otlib.utils
         private var m_oldCount:uint;
         private var m_newCount:uint;
 
-        // --------------------------------------
+        //--------------------------------------
         // Getters / Setters
-        // --------------------------------------
+        //--------------------------------------
 
-        public function get removedCount():uint
-        {
-            return m_removedCount;
-        }
-        public function get oldCount():uint
-        {
-            return m_oldCount;
-        }
-        public function get newCount():uint
-        {
-            return m_newCount;
-        }
+        public function get removedCount():uint { return m_removedCount; }
+        public function get oldCount():uint { return m_oldCount; }
+        public function get newCount():uint { return m_newCount; }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // CONSTRUCTOR
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
         public function SpritesOptimizer(objects:ThingTypeStorage, sprites:SpriteStorage)
         {
@@ -94,18 +85,17 @@ package otlib.utils
             m_sprites = sprites;
         }
 
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         // METHODS
-        // --------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
 
-        // --------------------------------------
+        //--------------------------------------
         // Public
-        // --------------------------------------
+        //--------------------------------------
 
         public function start():void
         {
-            if (m_finished)
-                return;
+            if (m_finished) return;
 
             var length:uint = m_sprites.spritesCount + 1;
             var steps:uint = 9;
@@ -208,8 +198,7 @@ package otlib.utils
                     count++;
                 }
 
-                if (index > m_sprites.spritesCount)
-                    break;
+                if (index > m_sprites.spritesCount) break;
 
                 var sprite:Sprite = m_oldIDs[index];
                 sprite.id = i;
@@ -260,16 +249,16 @@ package otlib.utils
         {
             for each (var thing:ThingType in list)
             {
-                for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
-                {
-                    var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
-                    if (!frameGroup)
-                        continue;
+				for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
+				{
+					var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
+					if(!frameGroup)
+						continue;
 
-                    var spriteIDs:Vector.<uint> = frameGroup.spriteIndex;
-                    for (var i:int = spriteIDs.length - 1; i >= 0; i--)
-                        usedList[spriteIDs[i]] = true;
-                }
+					var spriteIDs:Vector.<uint> = frameGroup.spriteIndex;
+					for (var i:int = spriteIDs.length - 1; i >= 0; i--)
+						usedList[ spriteIDs[i] ] = true;
+				}
             }
         }
 
@@ -277,19 +266,19 @@ package otlib.utils
         {
             for each (var thing:ThingType in list)
             {
-                for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
-                {
-                    var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
-                    if (!frameGroup)
-                        continue;
+				for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
+				{
+					var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
+					if(!frameGroup)
+						continue;
 
-                    var spriteIDs:Vector.<uint> = frameGroup.spriteIndex;
-                    for (var i:int = spriteIDs.length - 1; i >= 0; i--)
-                    {
-                        if (spriteIDs[i] != 0)
-                            spriteIDs[i] = m_newIDs[spriteIDs[i]];
-                    }
-                }
+					var spriteIDs:Vector.<uint> = frameGroup.spriteIndex;
+					for (var i:int = spriteIDs.length - 1; i >= 0; i--)
+					{
+						if (spriteIDs[i] != 0)
+							spriteIDs[i] = m_newIDs[ spriteIDs[i] ];
+					}
+				}
             }
         }
 
@@ -297,25 +286,25 @@ package otlib.utils
         {
             for each (var thing:ThingType in list)
             {
-                for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
-                {
-                    var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
-                    if (!frameGroup)
-                        continue;
+				for (var groupType:uint = FrameGroupType.DEFAULT; groupType <= FrameGroupType.WALKING; groupType++)
+				{
+					var frameGroup:FrameGroup = thing.getFrameGroup(groupType);
+					if(!frameGroup)
+						continue;
 
-                    var spriteIDs:Vector.<uint> = frameGroup.spriteIndex;
-                    for (var i:int = spriteIDs.length - 1; i >= 0; i--)
-                    {
-                        if (spriteIDs[i] != 0)
-                            spriteIDs[i] = m_oldIDs[spriteIDs[i]].id;
-                    }
-                }
+					var spriteIDs:Vector.<uint> = frameGroup.spriteIndex;
+					for (var i:int = spriteIDs.length - 1; i >= 0; i--)
+					{
+						if (spriteIDs[i] != 0)
+							spriteIDs[i] = m_oldIDs[ spriteIDs[i] ].id;
+					}
+				}
             }
         }
 
         private function dispatchProgress(current:uint, target:uint, label:String):void
         {
-            dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, ProgressBarID.OPTIMIZE, current, target, label));
+            dispatchEvent(new ProgressEvent(ProgressEvent.PROGRESS, ProgressBarID.FIND, current, target, label));
         }
     }
 }
